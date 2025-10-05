@@ -1,0 +1,271 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Клиент - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-accent-light: #4a90e2;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --shadow-light: rgba(0, 102, 204, 0.2);
+        }
+        body {
+            margin: 0;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        header h1 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: var(--color-accent);
+            margin: 0;
+        }
+        .theme-toggle {
+            background: var(--color-accent);
+            color: var(--color-button-text);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--shadow-light);
+            transition: background-color 0.3s;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+        main {
+            width: 100%;
+            max-width: 900px;
+            background: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+            padding: 30px 40px;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme main {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        main h2 {
+            margin-top: 0;
+            color: var(--color-accent);
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--color-accent-light);
+            padding-bottom: 10px;
+        }
+        .welcome {
+            font-size: 1.25rem;
+            margin-bottom: 30px;
+            color: inherit;
+        }
+        /* Поисковая строка */
+        .search-bar {
+            width: 100%;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input[type="text"] {
+            flex-grow: 1;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 2px solid #ccc;
+            border-radius: var(--border-radius);
+            transition: border-color 0.3s;
+        }
+        .search-bar input[type="text"]:focus {
+            border-color: var(--color-accent);
+            outline: none;
+        }
+        .search-bar button {
+            padding: 12px 24px;
+            border: none;
+            background-color: var(--color-accent);
+            color: var(--color-button-text);
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .search-bar button:hover {
+            background-color: #004d99;
+        }
+        /* Кнопки функций */
+        .client-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 24px;
+            width: 100%;
+        }
+        .panel-card {
+            background: #e6f0ff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 6px 16px rgba(0,102,204,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            color: var(--color-accent);
+            text-align: center;
+            font-weight: 600;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            min-height: 120px;
+            justify-content: center;
+        }
+        body.dark-theme .panel-card {
+            background: #3a3e60;
+            box-shadow: 0 6px 22px rgba(0,102,204,0.5);
+            color: #aacdff;
+        }
+        .panel-card:hover {
+            background: #c4d8ff;
+            box-shadow: 0 8px 22px rgba(0,102,204,0.5);
+            color: var(--color-accent);
+        }
+        body.dark-theme .panel-card:hover {
+            background: #4a587d;
+            color: #d1e1ff;
+        }
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 1.1rem;
+        }
+        .logout-link {
+            display: inline-block;
+            margin-top: 40px;
+            background: #e74c3c;
+            color: #fff;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(231,76,60,0.5);
+            transition: background-color 0.3s;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .logout-link:hover {
+            background-color: #c0392b;
+        }
+        body.dark-theme .logout-link {
+            background: #c0392b;
+            box-shadow: 0 5px 15px rgba(192,57,43,0.7);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>BookHaven</h1>
+        <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+    </header>
+    <main>
+        <h2>Добро пожаловать, {{ user.email }}!</h2>
+        <p class="welcome">Рады видеть Вас в нашем книжном магазине! Выбирайте лучшие книги и наслаждайтесь чтением.</p>
+
+        <form class="search-bar" action="#" method="GET" role="search" aria-label="Поиск книг">
+            <input type="text" name="q" placeholder="Поиск книг по названию, автору..." autocomplete="off" />
+            <button type="submit">🔍</button>
+        </form>
+
+        <section class="client-panel">
+            <div class="panel-card" title="Каталог книг">
+                <div class="card-icon">📚</div>
+                <div class="card-title">Каталог</div>
+            </div>
+            <div class="panel-card" title="Избранное">
+                <div class="card-icon">⭐</div>
+                <div class="card-title">Избранное</div>
+            </div>
+            <div class="panel-card" title="Корзина">
+                <div class="card-icon">🛒</div>
+                <div class="card-title">Корзина</div>
+            </div>
+            <div class="panel-card" title="Оформление заказа">
+                <div class="card-icon">✅</div>
+                <div class="card-title">Оформить заказ</div>
+            </div>
+            <div class="panel-card" title="История заказов">
+                <div class="card-icon">📜</div>
+                <div class="card-title">История заказов</div>
+            </div>
+            <div class="panel-card" title="Профиль">
+                <div class="card-icon">👤</div>
+                <div class="card-title">Профиль</div>
+            </div>
+            <div class="panel-card" title="Баланс и платежные данные">
+                <div class="card-icon">💳</div>
+                <div class="card-title">Баланс и оплата</div>
+            </div>
+            <div class="panel-card" title="Рецензии и рейтинги">
+                <div class="card-icon">📝</div>
+                <div class="card-title">Отзывы и рейтинги</div>
+            </div>
+            <div class="panel-card" title="Чат с поддержкой" onclick="location.href='#'">
+                <div class="card-icon">💬</div>
+                <div class="card-title">Чат поддержки</div>
+            </div>
+            <div class="panel-card" title="Настройки" onclick="location.href='#'">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">Настройки</div>
+            </div>
+        </section>
+
+        <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
+    </main>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        window.onload = function () {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        }
+    </script>
+</body>
+</html>

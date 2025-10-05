@@ -1,0 +1,297 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Регистрация - BookHaven</title>
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0; padding: 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        .container {
+            background: #fff;
+            padding: 40px 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            max-width: 420px;
+            width: 100%;
+            transition: background-color 0.4s, color 0.4s;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        body.dark-theme .container {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        h2 {
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: 1px;
+            text-align: center;
+            color: var(--color-accent);
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: inherit;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 6px;
+            border: 2px solid #ccc;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            background: #fafafa;
+            color: #222;
+        }
+        body.dark-theme input {
+            background: #3a3a57;
+            color: var(--color-text-dark);
+            border-color: #555;
+        }
+        input:focus {
+            border-color: var(--color-accent);
+            outline: none;
+        }
+        .errorlist {
+            color: var(--color-error);
+            margin: 4px 0 10px 0;
+            font-size: 0.85rem;
+        }
+        /* Обёртка для полей с лейблами и инпутами */
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+
+        /* Кнопка регитсрации и ссылка на вход в одну строку, кнопка шире */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+        button[type="submit"] {
+            flex-grow: 1;
+            padding: 14px 0;
+            border: none;
+            border-radius: var(--border-radius);
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,102,204,0.4);
+            transition: background-color 0.3s;
+            margin-right: 20px;
+        }
+        button[type="submit"]:hover {
+            background-color: #004d99;
+        }
+        .login-link {
+            font-weight: 600;
+            color: var(--color-accent);
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .login-link:hover {
+            color: #003366;
+        }
+        p.bottom-text {
+            text-align: center;
+            margin-top: 24px;
+            color: inherit;
+            font-size: 0.9rem;
+        }
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    
+    <script>
+        // Телефонная маска
+        function formatPhone(input) {
+            let val = input.value.replace(/\D/g, '');
+            if(!val.startsWith('7')) val = '7' + val;
+            let formatted = '+7 ';
+            if(val.length > 1) formatted += '(' + val.substring(1,4);
+            if(val.length >= 4) formatted += ') ' + val.substring(4,7);
+            if(val.length >= 7) formatted += '-' + val.substring(7,9);
+            if(val.length >= 9) formatted += '-' + val.substring(9,11);
+            input.value = formatted;
+        }
+        window.onload = function() {
+            const phoneInput = document.querySelector('input[name="phone"]');
+            if(phoneInput && !phoneInput.value) phoneInput.value = '+7 ';
+            
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+
+        // Переключение тем
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Валидация формы
+        function validateForm(event) {
+            const form = event.target;
+            const nameRegex = /^[А-ЯЁа-яё\s\-]+$/;
+            let valid = true;
+            let messages = [];
+
+            ['last_name', 'first_name', 'middle_name'].forEach(function(field){
+                const input = form.querySelector(`[name="${field}"]`);
+                if(input && input.value.trim() !== '') {
+                    if(!nameRegex.test(input.value.trim())) {
+                        valid = false;
+                        messages.push(`Поле "${input.previousElementSibling.innerText.replace(":", "")}" должно содержать только русские буквы, пробелы или дефисы.`);
+                    }
+                }
+            });
+
+            const phone = form.querySelector('[name="phone"]').value.trim();
+            const phoneRegex = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+            if(!phoneRegex.test(phone)) {
+                valid = false;
+                messages.push('Телефон должен быть в формате +7 (XXX) XXX-XX-XX');
+            }
+
+            const password1 = form.querySelector('[name="password1"]').value;
+            const password2 = form.querySelector('[name="password2"]').value;
+            const passRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};:\'"\\|,.<>\/?]).{8,}$/;
+
+            if(!passRegex.test(password1)) {
+                valid = false;
+                messages.push('Пароль должен содержать минимум 8 символов, включая буквы, цифры и специальные символы.');
+            }
+            if(password1 !== password2) {
+                valid = false;
+                messages.push('Пароли не совпадают.');
+            }
+
+            if(!valid) {
+                alert(messages.join('\n'));
+                event.preventDefault();
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <div class="container">
+        <h2>Регистрация в BookHaven</h2>
+        <form method="post" novalidate onsubmit="validateForm(event)">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="form-field">
+                <label for="{{ form.email.id_for_label }}">Email (логин):</label>
+                {{ form.email.errors }}
+                {{ form.email }}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.last_name.id_for_label }}">Фамилия:</label>
+                {{ form.last_name.errors }}
+                {{ form.last_name }}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.first_name.id_for_label }}">Имя:</label>
+                {{ form.first_name.errors }}
+                {{ form.first_name }}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.middle_name.id_for_label }}">Отчество:</label>
+                {{ form.middle_name.errors }}
+                {{ form.middle_name }}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.phone.id_for_label }}">Телефон:</label>
+                {{ form.phone.errors }}
+                {{ form.phone }}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.password1.id_for_label }}">Пароль:</label>
+                {{ form.password1.errors }}
+                {{ form.password1 }}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.password2.id_for_label }}">Повторите пароль:</label>
+                {{ form.password2.errors }}
+                {{ form.password2 }}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Зарегистрироваться</button>
+                <a class="login-link" href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

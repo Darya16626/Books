@@ -1,10 +1,12 @@
 {% load static %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Авторизация - BookHaven</title>
+    <title>Удаление книги - BookHaven</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <style>
         :root {
@@ -34,7 +36,7 @@
             background: var(--color-bg-dark);
             color: var(--color-text-dark);
         }
-        .login-container {
+        .delete-container {
             background: #fff;
             padding: 40px 45px;
             border-radius: var(--border-radius);
@@ -45,8 +47,9 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            text-align: center;
         }
-        body.dark-theme .login-container {
+        body.dark-theme .delete-container {
             background: #2a2a40;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         }
@@ -55,47 +58,16 @@
             font-weight: 700;
             font-size: 2rem;
             letter-spacing: 1px;
-            text-align: center;
             color: var(--color-accent);
         }
         form {
             display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        label {
-            font-weight: 600;
-            color: inherit;
-            margin-bottom: 6px;
-            user-select: none;
-        }
-        input[type="text"], input[type="password"] {
-            padding: 14px 16px;
-            border: 2px solid #ccc;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-            background: #fafafa;
-            color: #222;
-        }
-        body.dark-theme input[type="text"],
-        body.dark-theme input[type="password"] {
-            background: #3a3a57;
-            color: var(--color-text-dark);
-            border-color: #555;
-        }
-        input[type="text"]:focus, input[type="password"]:focus {
-            border-color: var(--color-accent);
-            outline: none;
-        }
-        .error-msg {
-            color: var(--color-error);
-            margin-bottom: 10px;
-            font-weight: 600;
-            text-align: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
         }
         button[type="submit"] {
-            padding: 16px 0;
+            padding: 16px 32px;
             border: none;
             border-radius: var(--border-radius);
             background-color: var(--color-button-bg);
@@ -109,20 +81,22 @@
         button[type="submit"]:hover {
             background-color: #004d99;
         }
-        p.bottom-text {
-            text-align: center;
-            margin-top: 18px;
-            font-size: 0.95rem;
-            color: inherit;
-        }
-        p.bottom-text a {
-            color: var(--color-accent);
+        a.cancel-link {
+            padding: 16px 32px;
+            border-radius: var(--border-radius);
+            background-color: #ddd;
+            color: #444;
             font-weight: 600;
+            font-size: 1.1rem;
             text-decoration: none;
-            transition: color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, color 0.3s;
         }
-        p.bottom-text a:hover {
-            color: #003366;
+        a.cancel-link:hover {
+            background-color: #bbb;
+            color: #222;
         }
         /* Кнопка переключения темы */
         .theme-toggle {
@@ -164,33 +138,15 @@
 <body>
     <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
 
-    <div class="login-container">
-        <h2>Войти в BookHaven</h2>
+    <div class="delete-container">
+        <h2>Подтвердите удаление книги: "{{ book.title }}"</h2>
 
-        {% if form.errors %}
-        <div class="error-msg">Неверный email или пароль. Попробуйте ещё раз.</div>
-        {% endif %}
-
-        <form method="post" action="{% url 'login' %}">
+        <form method="post">
             {% csrf_token %}
-            <div>
-                <label for="id_username">Email</label>
-                {{ form.username }}
-            </div>
-
-            <div>
-                <label for="id_password">Пароль</label>
-                {{ form.password }}
-            </div>
-
-            <button type="submit">Войти</button>
+            <button type="submit">Удалить</button>
+            <a href="{% url 'book_catalog' %}" class="cancel-link">Отмена</a>
         </form>
-
-        <p class="bottom-text">
-            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
-        </p>
-        <a href="{% url 'password_reset_request' %}">Забыли пароль?</a>
-
     </div>
 </body>
 </html>
+{% endblock %}

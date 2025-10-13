@@ -1,0 +1,539 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Баланс - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+
+        .balance-container {
+            max-width: 900px;
+            margin: 40px auto 50px auto;
+            background: #fff;
+            padding: 40px 45px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        body.dark-theme .balance-container {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--color-accent);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
+            transition: color 0.4s;
+        }
+
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #228822;
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: #e5f0e5;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px #aadfaa;
+            transition: background-color 0.4s, color 0.4s;
+        }
+
+        body.dark-theme .balance-amount {
+            background: #335533;
+            color: #a3d9a3;
+            box-shadow: inset 0 1px 3px #5a8f5a;
+        }
+
+        a.btn-back-to-main {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: var(--color-accent);
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        a.btn-back-to-main:hover {
+            color: #004d99;
+        }
+
+        form {
+            margin-bottom: 40px;
+            background: #f0f8ff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgb(34 68 102 / 0.15);
+            transition: box-shadow 0.3s ease-in-out, background-color 0.4s, color 0.4s;
+        }
+        form:hover {
+            box-shadow: 0 6px 18px rgb(34 68 102 / 0.3);
+        }
+        body.dark-theme form {
+            background: #223344;
+            color: var(--color-text-dark);
+            box-shadow: 0 3px 8px rgba(0, 50, 100, 0.5);
+        }
+        body.dark-theme form:hover {
+            box-shadow: 0 6px 18px rgba(0, 80, 170, 0.8);
+        }
+
+        form label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #00264d;
+            transition: color 0.4s;
+        }
+        body.dark-theme form label {
+            color: #a3c4ff;
+        }
+
+        form input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 15px;
+            border: 2px solid #99c2ff;
+            border-radius: 7px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, background-color 0.4s, color 0.4s;
+            background: #fafafa;
+            color: #222;
+        }
+        body.dark-theme form input {
+            background: #3a3a57;
+            color: var(--color-text-dark);
+            border-color: #5577bb;
+        }
+        form input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 8px #66a3ff88;
+        }
+
+        button {
+            background: var(--color-button-bg);
+            color: var(--color-button-text);
+            font-weight: 700;
+            border: none;
+            padding: 16px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            font-size: 1.1rem;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+        }
+        button:hover {
+            background: #004d99;
+            box-shadow: 0 8px 22px rgba(0,77,153,0.6);
+        }
+
+        .buttons-row {
+            display: flex;
+            justify-content: space-between;
+            max-width: 900px;
+            margin: 0 auto 40px;
+            padding: 0 45px;
+        }
+        .buttons-row button {
+            max-width: 180px;
+        }
+        .buttons-row form button {
+            background: #cc3300;
+        }
+        .buttons-row form button:hover {
+            background: #992200;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            font-size: 1rem;
+            margin-bottom: 35px;
+            background: #eef6ff;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: background-color 0.4s;
+        }
+        body.dark-theme table {
+            background: #223355;
+        }
+
+        thead tr {
+            background: #003366;
+            color: #fff;
+        }
+        tbody tr {
+            background: white;
+            transition: background-color 0.25s ease;
+            box-shadow: 0 3px 5px rgb(0 70 140 / 0.1);
+            border-radius: 8px;
+            cursor: default;
+        }
+        body.dark-theme tbody tr {
+            background: #1e1e2f;
+            box-shadow: 0 3px 8px rgba(0, 0, 50, 0.8);
+        }
+        tbody tr:hover {
+            background: #d8eaff;
+        }
+        body.dark-theme tbody tr:hover {
+            background: #335588;
+        }
+        tbody td {
+            padding: 13px 12px;
+            border-right: 1px solid #e1eaf4;
+            vertical-align: middle;
+            transition: color 0.4s;
+        }
+        body.dark-theme tbody td {
+            border-color: #445577;
+            color: var(--color-text-dark);
+        }
+        tbody td:last-child {
+            font-weight: 600;
+            color: #006600;
+        }
+        tbody tr td:nth-child(2) {
+            font-weight: 600;
+            color: #004080;
+        }
+        body.dark-theme tbody tr td:last-child {
+            color: #99cc99;
+        }
+
+        .export-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .export-buttons button {
+            margin: 0 10px;
+            display: inline-block;
+            min-width: 160px;
+            background: var(--color-accent);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: white;
+            border: none;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+        .export-buttons button:hover {
+            background: #004d99;
+            cursor: pointer;
+        }
+
+        /* Переключатель темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <div class="balance-container">
+        <h1>Баланс и платежные данные</h1>
+        <p class="balance-amount">Текущий баланс: {{ balance.amount|floatformat:2 }} ₽</p>
+        <a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную страницу">← Вернуться на главную</a>
+        <h2>Пополнение баланса</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ deposit_form.amount.label_tag }}
+            {{ deposit_form.amount }}
+            {{ deposit_form.password.label_tag }}
+            {{ deposit_form.password }}
+            <button type="submit" name="deposit_submit">Пополнить</button>
+            {% for error in deposit_form.non_field_errors %}
+                <p style="color: var(--color-error)">{{ error }}</p>
+            {% endfor %}
+            {% for field in deposit_form %}
+                {% for error in field.errors %}
+                    <p style="color: var(--color-error)">{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </form>
+
+        <h2>Перевод денег клиенту</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ transfer_form.to_user_email.label_tag }}
+            {{ transfer_form.to_user_email }}
+            {{ transfer_form.amount.label_tag }}
+            {{ transfer_form.amount }}
+            {{ transfer_form.password.label_tag }}
+            {{ transfer_form.password }}
+            <button type="submit" name="transfer_submit">Перевести</button>
+            {% for error in transfer_form.non_field_errors %}
+                <p style="color: var(--color-error)">{{ error }}</p>
+            {% endfor %}
+            {% for field in transfer_form %}
+                {% for error in field.errors %}
+                    <p style="color: var(--color-error)">{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </form>
+
+        <div class="buttons-row">
+            <button onclick="window.history.back();">← Назад</button>
+            <form method="post" action="{% url 'clear_balance_history' %}" onsubmit="return confirm('Вы действительно хотите очистить историю операций?');" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Очистить историю</button>
+            </form>
+        </div>
+
+        <h2>История операций</h2>
+
+        <div class="export-buttons">
+            <button id="exportExcelBtn">Экспорт в Excel</button>
+            <button id="exportPdfBtn">Экспорт в PDF</button>
+        </div>
+
+        <table id="operationsTable">
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Тип операции</th>
+                    <th>От кого</th>
+                    <th>Кому</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for op in operations %}
+                <tr>
+                    <td>{{ op.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td>{{ op.get_operation_type_display }}</td>
+                    <td>{% if op.operation_type == 'transfer' %}{{ op.from_user.email }}{% elif op.from_user %}{{ op.from_user.email }}{% else %}-{% endif %}</td>
+                    <td>{% if op.operation_type == 'transfer' %}{{ op.to_user.email }}{% elif op.to_user %}{{ op.to_user.email }}{% else %}-{% endif %}</td>
+                    <td>{{ op.amount|floatformat:2 }} ₽</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align:center; color:#888;">История операций пуста</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Диаграмма операций</h2>
+        <canvas id="balanceChart" height="400"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        const chartData = {{ chart_data|safe }};
+
+        const depositColor = 'rgba(34,139,34,0.7)';
+        const transferColor = 'rgba(30,144,255,0.7)';
+        const balanceColor = 'rgba(75,192,192,0.9)';
+
+        let cumulative = 0;
+        const cumulativeData = chartData.dates.map((_, i) => cumulative += (chartData.deposit[i] || 0) + (chartData.transfer[i] || 0));
+
+        const myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.dates,
+                datasets: [
+                    {
+                        label: 'Пополнения',
+                        data: chartData.deposit,
+                        backgroundColor: depositColor,
+                        stack: 'Stack 0',
+                        borderRadius: 5,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Переводы',
+                        data: chartData.transfer,
+                        backgroundColor: transferColor,
+                        stack: 'Stack 0',
+                        borderRadius: 5,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Накопленный баланс',
+                        data: cumulativeData,
+                        type: 'line',
+                        borderColor: balanceColor,
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.3,
+                        yAxisID: 'y1',
+                        pointRadius: 5,
+                        datalabels: {
+                            align: 'top',
+                            anchor: 'end',
+                            color: balanceColor,
+                            font: { weight: 'bold', size: 12 },
+                            formatter: v => v ? v.toFixed(2) + '₽' : ''
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                plugins: {
+                    legend: { labels: { font: { size: 14, weight: 'bold' } } },
+                    tooltip: { mode: 'index', intersect: false },
+                    datalabels: { display: true },
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        title: { display: true, text: 'Дата', font: { size: 14, weight: 'bold' } }
+                    },
+                    y: {
+                        stacked: true,
+                        title: { display: true, text: 'Сумма (₽)', font: { size: 14, weight: 'bold' } },
+                        ticks: { beginAtZero: true }
+                    },
+                    y1: {
+                        position: 'right',
+                        title: { display: true, text: 'Накопленный баланс (₽)', font: { size: 14, weight: 'bold' } },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels],
+        });
+
+        document.getElementById('exportExcelBtn').addEventListener('click', () => {
+            const table = document.getElementById('operationsTable');
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.table_to_sheet(table, { raw:true });
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for(let C = range.s.c; C <= range.e.c; ++C) {
+                const cellAddress = XLSX.utils.encode_cell({r:0, c:C});
+                if(!ws[cellAddress]) continue;
+                ws[cellAddress].s = {
+                    fill: { fgColor: { rgb: "003366" } },
+                    font: { color: { rgb: "FFFFFF" }, bold: true, sz: 12 },
+                    alignment: { horizontal: "center" }
+                };
+            }
+            XLSX.utils.book_append_sheet(wb, ws, "История операций");
+            XLSX.writeFile(wb, "balance_operations.xlsx");
+        });
+
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+            const margin = 30;
+            const pageWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+            let yOffset = margin;
+
+            pdf.setFontSize(18);
+            pdf.setTextColor('#004d99');
+            pdf.text("Диаграмма операций", pageWidth / 2 + margin, yOffset, { align: 'center' });
+            yOffset += 30;
+
+            const canvas = document.getElementById('balanceChart');
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', margin, yOffset, pageWidth, imgHeight);
+            yOffset += imgHeight + 35;
+
+            pdf.setFontSize(16);
+            pdf.setTextColor('#004d99');
+            pdf.text("История операций", pageWidth / 2 + margin, yOffset, { align: 'center' });
+            yOffset += 20;
+
+            const rows = [];
+            document.querySelectorAll("#operationsTable tbody tr").forEach(tr => {
+                const row = [];
+                tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
+                rows.push(row);
+            });
+
+            pdf.autoTable({
+                startY: yOffset,
+                head: [["Дата и время", "Тип операции", "От кого", "Кому", "Сумма"]],
+                body: rows,
+                margin: { left: margin, right: margin },
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: '#003366', textColor: 'white', fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: '#f0f0f0' },
+                theme: 'striped',
+            });
+
+            pdf.save("balance_operations.pdf");
+        });
+    </script>
+</body>
+</html>

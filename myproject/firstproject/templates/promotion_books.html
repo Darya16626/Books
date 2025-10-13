@@ -1,0 +1,313 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Товары акции: {{ promotion.title }} - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-accent-light: #4a90e2;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --shadow-light: rgba(0, 102, 204, 0.2);
+        }
+        body {
+            margin: 0;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            transition: background-color 0.4s, color 0.4s;
+            user-select: none;
+        }
+        body.dark-theme {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        header {
+            width: 100%;
+            max-width: 960px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-weight: 700;
+            font-size: 2.4rem;
+            color: var(--color-accent);
+            margin-bottom: 8px;
+            user-select: text;
+        }
+        header p {
+            max-width: 700px;
+            margin: 6px auto;
+            color: #555;
+            font-size: 1rem;
+            line-height: 1.4;
+            user-select: text;
+        }
+        header a {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--color-accent);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+            user-select: none;
+        }
+        header a:hover,
+        header a:focus {
+            color: #004d99;
+            outline: none;
+        }
+        /* Сетка книг */
+        .books-grid {
+            max-width: 960px;
+            margin: 0 auto 60px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 32px;
+            padding: 0 10px;
+        }
+        /* Вся карточка - ссылка */
+        article.book-card {
+            background: var(--color-button-text);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+            user-select: none;
+            text-decoration: none;
+            color: inherit;
+        }
+        body.dark-theme article.book-card {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            color: var(--color-text-dark);
+        }
+        article.book-card:hover,
+        article.book-card:focus-within {
+            box-shadow: 0 18px 48px var(--shadow-light);
+            transform: translateY(-8px);
+            border-color: var(--color-accent);
+            outline: none;
+        }
+        .book-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            background: #f1f7ff;
+            border-bottom: 1.5px solid #ddd;
+            transition: background-color 0.4s;
+        }
+        body.dark-theme .book-image {
+            background: #3a3e60;
+            border-color: #4a587d;
+        }
+        .book-content {
+            padding: 22px 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: inherit;
+        }
+        .book-title {
+            font-weight: 700;
+            font-size: 1.22rem;
+            margin: 0 0 8px 0;
+            color: var(--color-accent);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            user-select: text;
+            transition: color 0.3s ease;
+        }
+        body.dark-theme .book-title {
+            color: var(--color-button-text);
+        }
+        .book-author {
+            font-style: italic;
+            color: #666;
+            margin: 0 0 14px 0;
+            font-size: 1rem;
+        }
+        body.dark-theme .book-author {
+            color: #aacdff;
+        }
+        .rating {
+            margin-bottom: 12px;
+            color: #f39c12;
+            font-size: 1.1rem;
+            user-select: none;
+        }
+        .book-price {
+            font-weight: 700;
+            color: var(--color-accent);
+            font-size: 1.3rem;
+            margin-bottom: 18px;
+            user-select: none;
+        }
+        .book-old-price {
+            color: #999;
+            font-size: 1.1rem;
+            text-decoration: line-through;
+            margin-right: 12px;
+            font-weight: 500;
+            user-select: none;
+        }
+        body.dark-theme .book-old-price {
+            color: #7a8cba;
+        }
+        /* Кнопки под карточкой */
+        .book-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            max-width: 960px;
+            margin: 12px auto 40px auto;
+        }
+        .book-actions form button {
+            padding: 11px 28px;
+            border: none;
+            background-color: var(--color-accent);
+            color: var(--color-button-text);
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 3px 10px rgba(0, 102, 204, 0.45);
+            user-select: none;
+            min-width: 140px;
+            white-space: nowrap;
+        }
+        .book-actions form button:hover,
+        .book-actions form button:focus {
+            background-color: #0557aa;
+            transform: translateY(-3px);
+            outline: none;
+            box-shadow: 0 6px 18px rgba(0, 87, 170, 0.7);
+        }
+        /* Адаптивность */
+        @media (max-width: 700px) {
+            .book-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .book-actions form button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Товары акции: {{ promotion.title }}</h1>
+        <p>{{ promotion.description }}</p>
+        <p><strong>Скидка:</strong> {{ promotion.discount_percent }}%</p>
+        <a href="{% url 'client_book_catalog' %}">← Вернуться в каталог</a>
+    </header>
+
+    <div class="books-grid" role="list" aria-label="Список книг акции">
+        {% if books %}
+            {% for pb in books %}
+                {% with book=pb.book %}
+                <article class="book-card" role="listitem" tabindex="0" aria-label="Книга {{ book.title }} автора {{ book.author }}">
+                    <a href="{% url 'clients_book_detail' book.id %}">
+                        {% with book.get_image_list|first as img_url %}
+                            {% if img_url %}
+                                <img src="{{ img_url }}" alt="{{ book.title }}" class="book-image" loading="lazy" />
+                            {% else %}
+                                <div class="book-image" style="display:flex;align-items:center;justify-content:center;color:#aaa;">Нет изображения</div>
+                            {% endif %}
+                        {% endwith %}
+                        <div class="book-content">
+                            <h2 class="book-title" title="{{ book.title }}">{{ book.title }}</h2>
+                            <p class="book-author">Автор: {{ book.author }}</p>
+                            <div class="rating" aria-label="Рейтинг {{ book.rating|floatformat:1 }} из 5">
+                                {% for i in "12345" %}
+                                    {% if book.rating|floatformat:1 >= i %}
+                                        ★
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="book-price">
+                                {% if book.original_price and book.price != book.original_price %}
+                                    <span class="book-old-price">{{ book.original_price }} ₽</span>
+                                    <span>{{ book.price|floatformat:2 }} ₽</span>
+                                {% else %}
+                                    {{ book.price|floatformat:2 }} ₽
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    <div class="book-actions">
+                        <form action="{% url 'add_to_cart' book.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" title="Добавить в корзину">В корзину</button>
+                        </form>
+                        <form action="{% url 'add_to_favorites' book.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" title="Добавить в избранное">В избранное</button>
+                        </form>
+                    </div>
+                </article>
+                {% endwith %}
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center; font-size:1.2rem; color:#666; margin-top: 60px;">Пока нет товаров, относящихся к этой акции.</p>
+        {% endif %}
+    </div>
+
+    <header style="max-width: 900px; width: 100%; margin: 0 auto 40px; display: flex; justify-content: flex-end;">
+        <button class="theme-toggle" type="button" aria-label="Переключить тему светлая/темная" style="
+            background: var(--color-accent);
+            color: var(--color-button-text);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--shadow-light);
+            transition: background-color 0.3s;">Тёмная / Светлая тема</button>
+    </header>
+
+    <script>
+        const themeToggleBtn = document.querySelector('.theme-toggle');
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        });
+    </script>
+</body>
+</html>

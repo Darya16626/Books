@@ -14,7 +14,6 @@
             --color-error: #e74c3c;
             --color-bg-dark: #1e1e2f;
             --color-text-dark: #eaeaea;
-            /* Используем ту же цветовую палитру, что и для админа */
             --color-button-bg: var(--color-accent);
             --color-button-text: #ffffff;
             --border-radius: 10px;
@@ -181,7 +180,8 @@
         <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
     </header>
     <main>
-        <h2>Добро пожаловать, {{ user.email }}!</h2>
+        <h2>Добро пожаловать, {{ user.get_full_name|default:user.email }}!</h2>
+        <p class="welcome">Роль: {{ user.profile.get_role_display }}</p>
         <p class="welcome">Управляйте заказами клиентов и контролируйте состояние магазина.</p>
 
         <section class="manager-panel">

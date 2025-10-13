@@ -1,0 +1,560 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ book.title }} - Детали товара - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 30px auto;
+            max-width: 900px;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        header h1 {
+            font-size: 2.8rem;
+            color: var(--color-accent);
+            margin-bottom: 8px;
+            transition: color 0.4s;
+        }
+        body.dark-theme header h1 {
+            color: #80b4ff;
+        }
+        header p {
+            font-size: 1.1rem;
+            margin: 5px 0;
+        }
+        header p.price {
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: #0074d9;
+            transition: color 0.4s;
+        }
+        body.dark-theme header p.price {
+            color: #80b4ff;
+        }
+        header p.price del {
+            font-weight: normal;
+            color: #999;
+            margin-right: 10px;
+        }
+        header p.rating {
+            font-size: 1.4rem;
+            color: #004080;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #e6f0ff;
+            padding: 6px 16px;
+            border-radius: 24px;
+            box-shadow: 0 2px 10px rgba(0, 116, 217, 0.15);
+            width: fit-content;
+            margin: 16px auto 24px auto;
+            user-select: none;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme header p.rating {
+            color: #adc6ff;
+            background: #003060;
+            box-shadow: 0 2px 10px rgba(0,62,120,0.6);
+        }
+        header p.rating span.star-icon {
+            color: #f5b301;
+            font-size: 1.6rem;
+            line-height: 1;
+            user-select: none;
+            transition: color 0.4s;
+        }
+        header p.rating span.rating-number {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #004080;
+            user-select: text;
+        }
+        body.dark-theme header p.rating span.rating-number {
+            color: #adc6ff;
+        }
+        header a.catalog-back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 22px;
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+        }
+        header a.catalog-back:hover,
+        header a.catalog-back:focus {
+            background-color: #004d99;
+            outline: none;
+            box-shadow: 0 6px 20px rgba(0,77,153,0.7);
+        }
+        /* Галерея изображений */
+        .images-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            object-fit: cover;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+        .thumbnail.selected {
+            border-color: var(--color-accent);
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,116,217,0.4);
+        }
+        body.dark-theme .thumbnail.selected {
+            border-color: #80b4ff;
+            box-shadow: 0 4px 10px rgba(128,180,255,0.7);
+        }
+        .main-image {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 116, 217, 0.4);
+            object-fit: contain;
+            margin: 0 auto 30px auto;
+            display: block;
+            transition: box-shadow 0.4s;
+        }
+        body.dark-theme .main-image {
+            box-shadow: 0 5px 20px rgba(128,180,255,0.7);
+        }
+        main {
+            background: #fff;
+            padding: 30px 36px;
+            border-radius: 12px;
+            box-shadow: 0 3px 16px rgba(0,0,0,0.07);
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme main {
+            background: #2a2a40;
+            box-shadow: 0 3px 20px rgba(0,0,0,0.7);
+            color: var(--color-text-dark);
+        }
+        h2 {
+            font-size: 2rem;
+            color: #004080;
+            border-bottom: 3px solid var(--color-accent);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-weight: 700;
+            transition: color 0.4s, border-color 0.4s;
+        }
+        body.dark-theme h2 {
+            color: #80b4ff;
+            border-color: #80b4ff;
+        }
+        .book-info {
+            max-width: 500px;
+            margin: 0 auto 40px auto;
+            font-size: 1.15rem;
+            color: #444;
+            line-height: 1.6;
+            transition: color 0.4s;
+        }
+        body.dark-theme .book-info {
+            color: #adc6ff;
+        }
+        .book-info dt {
+            font-weight: 700;
+            padding-top: 14px;
+        }
+        form.comment-form {
+            border: 1px solid #d1d9e6;
+            padding: 26px;
+            border-radius: 14px;
+            margin-bottom: 48px;
+            background: #f9fbff;
+            box-shadow: 0 3px 12px rgba(0,116,217,0.1);
+            transition: background-color 0.4s, border-color 0.4s;
+        }
+        body.dark-theme form.comment-form {
+            background: #223358;
+            border-color: #5077c6;
+            box-shadow: 0 3px 12px rgba(128,180,255,0.3);
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+            color: #004080;
+            font-size: 1.1rem;
+            user-select: none;
+            transition: color 0.4s;
+        }
+        body.dark-theme label {
+            color: #a0baff;
+        }
+        textarea, input[type="hidden"] {
+            width: 100%;
+            font-size: 1rem;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #bbb;
+            resize: vertical;
+            margin-bottom: 22px;
+            transition: border-color 0.3s ease, background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme textarea {
+            background: #3a3f5a;
+            color: var(--color-text-dark);
+            border-color: #5077c6;
+        }
+        textarea:focus {
+            border-color: var(--color-accent);
+            outline: none;
+            box-shadow: 0 0 8px rgba(0,116,217,0.35);
+        }
+        .rating-stars {
+            margin-bottom: 22px;
+            user-select: none;
+            display: flex;
+            gap: 4px;
+        }
+        .stars {
+            font-size: 2.6rem;
+            color: #ccc;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.25s ease;
+            margin-right: 8px;
+            filter: drop-shadow(0 0 1px rgba(0,0,0,0.1));
+        }
+        .stars.selected,
+        .stars:hover,
+        .stars:hover ~ .stars {
+            color: #f5b301;
+            filter: drop-shadow(0 0 4px #f5b301);
+        }
+        button[type="submit"] {
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            padding: 14px 36px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.35s ease, box-shadow 0.35s ease;
+            box-shadow: 0 6px 14px rgba(0,102,204,0.4);
+        }
+        button[type="submit"]:hover,
+        button[type="submit"]:focus {
+            background-color: #004d99;
+            outline: none;
+            box-shadow: 0 8px 20px rgba(0,77,153,0.7);
+        }
+        /* Отзывы */
+        .review {
+            border-bottom: 1px solid #dde3f0;
+            padding: 24px 0;
+            transition: border-color 0.4s;
+        }
+        body.dark-theme .review {
+            border-color: #5077c6;
+        }
+        .review:last-child {
+            border-bottom: none;
+        }
+        .review .author {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #004080;
+            margin-bottom: 8px;
+            transition: color 0.4s;
+        }
+        body.dark-theme .review .author {
+            color: #a0baff;
+        }
+        .review .rating {
+            color: #f5b301;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            user-select: none;
+        }
+        .review p.comment {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            color: #2f2f2f;
+            transition: color 0.4s;
+        }
+        body.dark-theme .review p.comment {
+            color: #d1d9e6;
+        }
+        .review .date {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 14px;
+            transition: color 0.4s;
+        }
+        body.dark-theme .review .date {
+            color: #b0b9d1;
+        }
+        .review-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .review-actions form button {
+            background-color: #f0f4ff;
+            border: 1.8px solid var(--color-accent);
+            border-radius: 28px;
+            padding: 8px 18px;
+            font-size: 1.1rem;
+            color: var(--color-accent);
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,116,217,0.15);
+        }
+        .review-actions form button:hover,
+        .review-actions form button:focus {
+            background-color: var(--color-accent);
+            color: var(--color-button-text);
+            outline: none;
+            box-shadow: 0 4px 15px rgba(0,116,217,0.4);
+        }
+        .review-actions form button.delete {
+            border-color: #d63031;
+            color: #d63031;
+            box-shadow: 0 2px 8px rgba(214,48,49,0.25);
+        }
+        .review-actions form button.delete:hover,
+        .review-actions form button.delete:focus {
+            background-color: #d63031;
+            color: var(--color-button-text);
+            box-shadow: 0 5px 16px rgba(214,48,49,0.5);
+        }
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-button-bg);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainImage = document.getElementById('main-image');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', () => {
+                    mainImage.src = thumb.src;
+                    thumbnails.forEach(t => t.classList.remove('selected'));
+                    thumb.classList.add('selected');
+                });
+            });
+
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function setRating(rating) {
+            const stars = document.querySelectorAll('.rating-stars span');
+            stars.forEach((star, index) => {
+                star.classList.toggle('selected', index < rating);
+                star.setAttribute('aria-checked', index + 1 === rating ? 'true' : 'false');
+            });
+            document.getElementById('id_rating').value = rating;
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+<header>
+    <h1>{{ book.title }}</h1>
+    <p>Автор: {{ book.author }}</p>
+    <p>Жанр: {{ book.genre }}</p>
+    <p class="price" aria-label="Цена книги">
+        {% if book.original_price and book.price != book.original_price %}
+            <del>{{ book.original_price|floatformat:2 }} ₽</del>
+        {% endif %}
+        <strong>{{ book.price|floatformat:2 }} ₽</strong>
+    </p>
+    <p class="rating" aria-label="Рейтинг книги {{ book.rating|floatformat:1 }} звезд">
+        <span class="star-icon" aria-hidden="true">★</span>
+        <span class="rating-number" aria-label="Цифровой рейтинг">{{ book.rating|floatformat:1 }}</span>
+    </p>
+    <a href="javascript:history.back()" class="catalog-back">← Назад</a>
+</header>
+
+<!-- Галерея изображений -->
+<div class="images-container" role="list" aria-label="Изображения книги">
+    {% with book.get_image_list as images %}
+        {% if images %}
+            <img id="main-image" src="{{ images.0 }}" alt="Большое изображение книги {{ book.title }}" class="main-image" role="listitem" aria-selected="true" />
+            <div role="list" aria-label="Маленькие изображения книги">
+                {% for img in images %}
+                    <img src="{{ img }}" alt="Миниатюра изображения книги {{ book.title }}" class="thumbnail {% if forloop.first %}selected{% endif %}" tabindex="0" role="listitem" />
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align:center; color:#aaa; padding: 40px 0;">Нет изображений</div>
+        {% endif %}
+    {% endwith %}
+</div>
+
+<main>
+    <section aria-labelledby="info-section" class="book-info">
+        <h2 id="info-section">Информация о книге</h2>
+        <dl>
+            <dt>Описание:</dt>
+            <dd>{{ book.description|default:"Описание отсутствует" }}</dd>
+
+            <dt>Количество на складе:</dt>
+            <dd>{{ book.stock_quantity }} {{ book.stock_quantity|pluralize:"штука,штуки,штук" }}</dd>
+
+            <dt>Количество дней доставки:</dt>
+            <dd>{{ book.delivery_days }} {{ book.delivery_days|pluralize:"день,дня,дней" }}</dd>
+
+            <dt>Артикул (SKU):</dt>
+            <dd>{{ book.sku }}</dd>
+
+            <dt>ISBN:</dt>
+            <dd>{{ book.isbn }}</dd>
+        </dl>
+    </section>
+
+    <section aria-labelledby="reviews-section">
+        <h2 id="reviews-section">Отзывы</h2>
+
+        <!-- Форма добавления комментария -->
+        <form method="post" aria-label="Оставить отзыв о книге" novalidate class="comment-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_review" />
+            <label for="id_rating">Оценка:</label>
+            <div class="rating-stars" aria-label="Оценка товара от 1 до 5 звезд" role="radiogroup">
+                {% for i in rating_range %}
+                    <span class="stars" onclick="setRating({{ i }})" tabindex="0" role="radio" aria-checked="false" aria-label="Оценить {{ i }} звезд">★</span>
+                {% endfor %}
+            </div>
+            <input type="hidden" id="id_rating" name="rating" value="0" required aria-required="true" />
+
+            <label for="id_comment">Комментарий:</label>
+            <textarea name="comment" id="id_comment" rows="4" placeholder="Напишите ваш отзыв..." required></textarea>
+
+            <button type="submit">Отправить отзыв</button>
+        </form>
+
+        <!-- Отзывы -->
+        {% if reviews %}
+            <div role="list" aria-label="Отзывы пользователей">
+                {% for review in reviews %}
+                <article class="review" role="listitem" aria-label="Отзыв пользователя {{ review.user.get_full_name }}">
+                    <p class="author">{{ review.user.get_full_name }}</p>
+                    <p class="rating" aria-label="Оценка {{ review.rating }} из 5">
+                        {% for i in rating_range %}
+                            {% if review.rating >= i %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p class="comment">{{ review.comment|linebreaksbr }}</p>
+                    <p class="date">Дата: {{ review.created_at|date:"d.m.Y H:i" }}</p>
+
+                    <div class="review-actions" aria-label="Действия с отзывом">
+                        {% if review.user != user %}
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="react" />
+                            <input type="hidden" name="review_id" value="{{ review.id }}" />
+                            <button type="submit" name="is_like" value="true" title="Поставить лайк" aria-label="Поставить лайк">👍 {{ review.likes }}</button>
+                        </form>
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="react" />
+                            <input type="hidden" name="review_id" value="{{ review.id }}" />
+                            <button type="submit" name="is_like" value="false" title="Поставить дизлайк" aria-label="Поставить дизлайк">👎 {{ review.dislikes }}</button>
+                        </form>
+                        {% else %}
+                        <form method="post" style="display:inline;" onsubmit="return confirm('Вы действительно хотите удалить свой отзыв?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_review" />
+                            <input type="hidden" name="review_id" value="{{ review.id }}" />
+                            <button type="submit" title="Удалить отзыв" aria-label="Удалить отзыв" class="delete">Удалить</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Пока нет отзывов. Будьте первым, кто оставит отзыв!</p>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>

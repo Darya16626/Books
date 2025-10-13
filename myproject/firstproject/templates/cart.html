@@ -1,0 +1,406 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Корзина - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0; padding: 20px 20px 40px;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            color: var(--color-accent);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .balance-container {
+            max-width: 1140px;
+            margin: 0 auto 25px auto;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #27ae60;
+            text-align: right;
+            padding: 0 10px;
+            border-bottom: 2px solid #27ae60;
+            transition: color 0.4s;
+        }
+        body.dark-theme .balance-container {
+            color: #7bed8d;
+            border-color: #7bed8d;
+        }
+        a.btn-back-to-main {
+            display: inline-block;
+            max-width: 1140px;
+            margin: 0 auto 30px auto;
+            text-decoration: none;
+            color: var(--color-accent);
+            font-weight: 700;
+            border: 2px solid var(--color-accent);
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        a.btn-back-to-main:hover {
+            background-color: var(--color-accent);
+            color: var(--color-button-text);
+        }
+        body.dark-theme a.btn-back-to-main {
+            color: #80b4ff;
+            border-color: #80b4ff;
+        }
+        body.dark-theme a.btn-back-to-main:hover {
+            background-color: #004d99;
+            color: #fff;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1140px;
+            margin: 0 auto;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.09);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.4s ease, transform 0.3s ease, background-color 0.4s, color 0.4s;
+            max-width: 320px;
+            margin: auto;
+            color: var(--color-text-light);
+        }
+        body.dark-theme .product-card {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            color: var(--color-text-dark);
+        }
+        .product-card:hover {
+            box-shadow: 0 16px 48px rgba(0,0,0,0.16);
+            transform: translateY(-6px);
+        }
+        .product-image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 270px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #e1e8ed;
+            transition: background-color 0.4s;
+        }
+        body.dark-theme .product-image-wrapper {
+            background: #3a3a57;
+            border-color: #444;
+        }
+        .product-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .product-image-wrapper:hover .product-image {
+            transform: scale(1.08);
+        }
+        .product-no-image {
+            width: 100%;
+            height: 270px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+        body.dark-theme .product-no-image {
+            background: #555;
+            color: #bbb;
+        }
+        .product-info {
+            padding: 20px 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #34495e;
+            margin-bottom: 8px;
+            text-decoration: none;
+            line-height: 1.25;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            transition: color 0.3s;
+        }
+        body.dark-theme .product-title {
+            color: #adc6ff;
+        }
+        .product-title:hover {
+            text-decoration: underline;
+            color: #1d3557;
+        }
+        body.dark-theme .product-title:hover {
+            color: #80b4ff;
+        }
+        .product-author {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-bottom: 14px;
+            min-height: 44px;
+            line-height: 1.4;
+            transition: color 0.3s;
+        }
+        body.dark-theme .product-author {
+            color: #a0acb4;
+        }
+        .product-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 14px;
+        }
+        .old-price {
+            text-decoration: line-through;
+            color: #bdc3c7;
+            margin-right: 10px;
+            font-weight: 500;
+        }
+        .new-price {
+            color: #e74c3c;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 14px;
+        }
+        .btn-qty {
+            background: var(--color-accent);
+            color: var(--color-button-text);
+            border: none;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 24px;
+            line-height: 1;
+            user-select: none;
+            box-shadow: 0 3px 6px rgba(0, 102, 204, 0.4);
+            transition: background-color 0.25s ease;
+        }
+        .btn-qty:hover {
+            background: #004d99;
+        }
+        .quantity {
+            font-weight: 600;
+            min-width: 32px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #34495e;
+        }
+        body.dark-theme .quantity {
+            color: #adc6ff;
+        }
+        .total-price {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #34495e;
+            margin-bottom: 20px;
+        }
+        body.dark-theme .total-price {
+            color: #adc6ff;
+        }
+        .remove-form {
+            margin-top: auto;
+        }
+        .btn-remove {
+            background: #c0392b;
+            color: var(--color-button-text);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            width: 100%;
+            box-shadow: 0 3px 10px rgba(192, 57, 43, 0.85);
+            transition: background-color 0.3s ease;
+        }
+        .btn-remove:hover {
+            background: #922b21;
+        }
+        .cart-total {
+            margin-top: 50px;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #2c3e50;
+            max-width: 320px;
+            margin-left: auto;
+            text-align: right;
+            padding-right: 10px;
+            transition: color 0.4s;
+        }
+        body.dark-theme .cart-total {
+            color: #adc6ff;
+        }
+        .empty-message {
+            font-style: italic;
+            color: #95a5a6;
+            margin-top: 80px;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        body.dark-theme .empty-message {
+            color: #bbb;
+        }
+        .inline-form {
+            display: inline;
+        }
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <h1>Ваша корзина</h1>
+
+    <div class="balance-container">
+        <span>Ваш текущий баланс:</span>
+        <strong>{{ balance.amount|floatformat:2 }} ₽</strong>
+    </div>
+    <a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную страницу">← Вернуться на главную</a>
+
+    {% if cart_items %}
+    <div class="products-grid">
+      {% for item in cart_items %}
+      <div class="product-card">
+        <div class="product-image-wrapper">
+          {% with item.book.get_image_list|first as image %}
+            {% if image %}
+              <a href="{% url 'clients_book_detail' item.book.id %}">
+                <img src="{{ image }}" alt="{{ item.book.title }}" class="product-image" loading="lazy">
+              </a>
+            {% else %}
+              <a href="{% url 'clients_book_detail' item.book.id %}">
+                <div class="product-no-image">Нет изображения</div>
+              </a>
+            {% endif %}
+          {% endwith %}
+        </div>
+        <div class="product-info">
+          <a href="{% url 'clients_book_detail' item.book.id %}" class="product-title">{{ item.book.title }}</a>
+          <p class="product-author">Автор: {{ item.book.author }}</p>
+          <p class="product-price">
+            {% if item.book.original_price and item.book.price < item.book.original_price %}
+              <span class="old-price">{{ item.book.original_price|floatformat:2 }} ₽</span>
+              <span class="new-price">{{ item.book.price|floatformat:2 }} ₽</span>
+            {% else %}
+              <span>{{ item.book.price|floatformat:2 }} ₽</span>
+            {% endif %}
+          </p>
+          <p>Доставка: {{ item.book.delivery_days }} дней</p>
+          <p>На складе: {{ item.book.stock_quantity }}</p>
+          <p>Рейтинг: ({{ item.book.rating|floatformat:1 }})</p>
+
+          <div class="quantity-control">
+            <form method="post" class="inline-form">
+              {% csrf_token %}
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <button type="submit" name="action" value="decrease" title="Уменьшить" class="btn-qty">−</button>
+            </form>
+            <span class="quantity">{{ item.quantity }}</span>
+            <form method="post" class="inline-form">
+              {% csrf_token %}
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <button type="submit" name="action" value="increase" title="Увеличить" class="btn-qty">+</button>
+            </form>
+          </div>
+          <p class="total-price">Итого: {{ item.get_total_price|floatformat:2 }} ₽</p>
+          <form method="post" class="remove-form">
+            {% csrf_token %}
+            <input type="hidden" name="item_id" value="{{ item.id }}">
+            <button type="submit" name="action" value="remove" class="btn-remove" title="Удалить">Удалить</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="cart-total">
+      <strong>Общая сумма: {{ total_price|floatformat:2 }} ₽</strong>
+    </div>
+
+    {% else %}
+    <p class="empty-message">Ваша корзина пуста.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,260 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if create %}Добавить{% else %}Редактировать{% endif %} пользователя - BookHaven Admin</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0; padding: 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        header {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px 45px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            border-bottom: 1px solid #ccc;
+            box-sizing: border-box;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme header {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+            border-color: #444;
+        }
+        header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: var(--color-accent);
+        }
+        .theme-toggle {
+            background: var(--color-accent);
+            color: var(--color-button-text);
+            border: none;
+            padding: 10px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            user-select: none;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+        main {
+            width: 100%;
+            max-width: 420px;
+            margin: 30px 45px 45px 45px;
+            background: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px 45px;
+            box-sizing: border-box;
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme main {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            color: var(--color-text-dark);
+        }
+        h2 {
+            margin: 0 0 25px 0;
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: 1px;
+            text-align: center;
+            color: var(--color-accent);
+            transition: color 0.4s;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        label {
+            font-weight: 600;
+            color: inherit;
+            margin-bottom: 6px;
+            user-select: none;
+            display: block;
+        }
+        input[type="text"], input[type="email"], input[type="password"], select {
+            padding: 14px 16px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #fafafa;
+            color: #222;
+            transition: border-color 0.3s ease, background-color 0.4s, color 0.4s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        body.dark-theme input[type="text"],
+        body.dark-theme input[type="email"],
+        body.dark-theme input[type="password"],
+        body.dark-theme select {
+            background: #3a3a57;
+            color: var(--color-text-dark);
+            border-color: #555;
+        }
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
+            border-color: var(--color-accent);
+            outline: none;
+        }
+        .error-msg {
+            color: var(--color-error);
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+        button[type="submit"] {
+            padding: 16px 0;
+            border: none;
+            border-radius: var(--border-radius);
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+            transition: background-color 0.3s;
+            user-select: none;
+        }
+        button[type="submit"]:hover {
+            background-color: #004d99;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--color-accent);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .back-link:hover {
+            color: #003366;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+            const phoneInput = document.querySelector('input[name="phone"]');
+            if (phoneInput) {
+                if(!phoneInput.value || !phoneInput.value.startsWith('+7')) {
+                    phoneInput.value = '+7 ';
+                }
+                phoneInput.addEventListener('input', function(e) {
+                    let val = this.value.replace(/\D/g, '');
+                    if (!val.startsWith('7')) {
+                        val = '7' + val;
+                    }
+                    let formatted = '+' + val[0];
+                    if (val.length > 1) {
+                        formatted += ' (' + val.slice(1,4);
+                    }
+                    if (val.length >= 5) {
+                        formatted += ') ' + val.slice(4,7);
+                    }
+                    if (val.length >= 8) {
+                        formatted += '-' + val.slice(7,9);
+                    }
+                    if (val.length >= 10) {
+                        formatted += '-' + val.slice(9,11);
+                    }
+                    this.value = formatted;
+                });
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</head>
+<body>
+<header>
+    <h1>BookHaven Admin</h1>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+</header>
+<main>
+    <h2>{% if create %}Добавить{% else %}Редактировать{% endif %} пользователя</h2>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email.errors }}
+        {{ form.email }}
+
+        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+        {{ form.first_name.errors }}
+        {{ form.first_name }}
+
+        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+        {{ form.last_name.errors }}
+        {{ form.last_name }}
+
+        <label for="{{ form.middle_name.id_for_label }}">{{ form.middle_name.label }}</label>
+        {{ form.middle_name.errors }}
+        {{ form.middle_name }}
+
+        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
+        {{ form.phone.errors }}
+        {{ form.phone }}
+
+        <label for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
+        {{ form.role.errors }}
+        {{ form.role }}
+
+        <label for="{{ form.password1.id_for_label }}">Сменить пароль (оставьте пустым, чтобы не менять)</label>
+        {{ form.password1.errors }}
+        {{ form.password1 }}
+
+        <label for="{{ form.password2.id_for_label }}">Подтверждение пароля</label>
+        {{ form.password2.errors }}
+        {{ form.password2 }}
+
+        <button type="submit">{% if create %}Создать{% else %}Сохранить{% endif %}</button>
+        <a href="{% url 'admin_users_list' %}" class="back-link">Отмена</a>
+    </form>
+</main>
+</body>
+</html>

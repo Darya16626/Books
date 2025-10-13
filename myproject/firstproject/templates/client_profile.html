@@ -1,0 +1,304 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Профиль клиента - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            transition: background-color 0.4s, color 0.4s;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+
+        main {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 40px 45px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,102,204,0.15);
+            transition: background-color 0.4s, color 0.4s;
+            width: 100%;
+        }
+        body.dark-theme main {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--color-accent);
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 2rem;
+            text-shadow: 1px 1px 2px rgba(163,196,243,0.7);
+            transition: color 0.4s;
+        }
+        h2, h3 {
+            color: var(--color-accent);
+            margin-bottom: 20px;
+            font-weight: 700;
+            transition: color 0.4s;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #004d99;
+            margin-bottom: 6px;
+            user-select: none;
+            transition: color 0.4s;
+        }
+        body.dark-theme label {
+            color: #a3c4ff;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            padding: 14px 16px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, background-color 0.4s, color 0.4s;
+            background: #fafafa;
+            color: #222;
+        }
+        body.dark-theme input[type="text"], 
+        body.dark-theme input[type="email"], 
+        body.dark-theme input[type="password"] {
+            background: #3a3a57;
+            color: var(--color-text-dark);
+            border-color: #555a99;
+        }
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+            border-color: var(--color-accent);
+            outline: none;
+        }
+
+        button[type="submit"], .btn-back {
+            margin-top: 30px;
+            padding: 16px 24px;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+            transition: background-color 0.3s, box-shadow 0.3s;
+            user-select: none;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+            font-size: 1.1rem;
+            color: var(--color-button-text);
+            background-color: var(--color-button-bg);
+        }
+        button[type="submit"]:hover {
+            background-color: #004d99;
+            box-shadow: 0 8px 22px rgba(0,77,153,0.6);
+        }
+        .btn-back {
+            background-color: #ccc;
+            color: #333;
+            margin-left: 15px;
+            padding: 16px 24px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        .btn-back:hover {
+            background-color: #aaa;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+        }
+
+        .errors {
+            color: var(--color-error);
+            margin-top: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .field-errors {
+            margin-top: 3px;
+            color: var(--color-error);
+            font-size: 0.9rem;
+        }
+
+        ul.messages {
+            margin-top: 20px;
+            list-style: none;
+            padding: 0;
+        }
+        ul.messages li {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        ul.messages li.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        ul.messages li.error, ul.messages li.warning {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <main>
+        <h1>BookHaven</h1>
+        <h2>Ваш профиль</h2>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <h3>Редактировать профиль</h3>
+
+            {% if form.non_field_errors %}
+                <div class="errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <label for="{{ form.first_name.id_for_label }}">Имя</label>
+            {{ form.first_name }}
+            {% for error in form.first_name.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <label for="{{ form.last_name.id_for_label }}">Фамилия</label>
+            {{ form.last_name }}
+            {% for error in form.last_name.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <label for="{{ form.middle_name.id_for_label }}">Отчество</label>
+            {{ form.middle_name }}
+            {% for error in form.middle_name.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <label for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% for error in form.email.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <label for="{{ form.phone.id_for_label }}">Телефон</label>
+            {{ form.phone }}
+            {% for error in form.phone.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <button type="submit" name="profile_submit">Сохранить изменения</button>
+            <a href="{% url 'client_page' %}" class="btn-back" role="button" aria-label="Вернуться на главную">Вернуться на главную</a>
+        </form>
+
+        <hr style="margin: 40px 0; border-color: var(--color-accent);" />
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <h3>Сменить пароль</h3>
+
+            {% if password_form.non_field_errors %}
+                <div class="errors">{{ password_form.non_field_errors }}</div>
+            {% endif %}
+
+            <label for="{{ password_form.old_password.id_for_label }}">Старый пароль</label>
+            {{ password_form.old_password }}
+            {% for error in password_form.old_password.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <label for="{{ password_form.new_password1.id_for_label }}">Новый пароль</label>
+            {{ password_form.new_password1 }}
+            {% for error in password_form.new_password1.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <label for="{{ password_form.new_password2.id_for_label }}">Подтверждение нового пароля</label>
+            {{ password_form.new_password2 }}
+            {% for error in password_form.new_password2.errors %}
+                <div class="field-errors">{{ error }}</div>
+            {% endfor %}
+
+            <button type="submit" name="password_submit">Сменить пароль</button>
+        </form>
+    </main>
+</body>
+</html>
+

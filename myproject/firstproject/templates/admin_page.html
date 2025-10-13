@@ -7,6 +7,7 @@
     <title>Админ - BookHaven</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <style>
+        /* CSS из вашего примера (color variables, body, header, main, .panel-card, etc.) */
         :root {
             --color-bg-light: #f9f9f9;
             --color-text-light: #222222;
@@ -182,30 +183,31 @@
         <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
     </header>
     <main>
-        <h2>Добро пожаловать, {{ user.email }}!</h2>
+        <h2>Добро пожаловать, {{ user.get_full_name|default:user.email }}!</h2>
+        <p class="welcome">Роль: {{ user.profile.get_role_display }}</p>
         <p class="welcome">Управляйте магазином, следите за заказами и добавляйте новые книги.</p>
 
         <section class="admin-panel">
-            <div class="panel-card" onclick="alert('Раздел управления пользователями')" title="Просмотр и управление пользователями">
+            <a href="{% url 'admin_users_list' %}" class="panel-card" title="Просмотр и управление пользователями" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">👥</div>
                 <div class="card-title">Пользователи</div>
                 <div class="card-desc">Добавление, редактирование, удаление, изменение ролей, блокировка</div>
-            </div>
-            <div class="panel-card" onclick="alert('Управление каталогом книг')" title="Управление каталогом книг">
+            </a>                
+            <a href="{% url 'book_catalog' %}" class="panel-card" title="Управление каталогом книг" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">📚</div>
                 <div class="card-title">Каталог книг</div>
                 <div class="card-desc">Добавление, редактирование, удаление товаров, поиск и фильтрация</div>
-            </div>
+            </a>            
             <div class="panel-card" onclick="alert('Просмотр и управление заказами')" title="Заказы">
                 <div class="card-icon">🛒</div>
                 <div class="card-title">Заказы</div>
                 <div class="card-desc">Просмотр, изменение статусов, создание и удаление заказов</div>
             </div>
-            <div class="panel-card" onclick="alert('Управление акциями и скидками')" title="Акции и промо-кампании">
+            <a href="{% url 'promotions_list' %}" class="panel-card" title="Управление акциями и скидками" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">🎁</div>
                 <div class="card-title">Акции и скидки</div>
                 <div class="card-desc">Создание, редактирование, удаление промо-кампаний</div>
-            </div>
+            </a>
             <div class="panel-card" onclick="alert('Управление уведомлениями')" title="Уведомления">
                 <div class="card-icon">📣</div>
                 <div class="card-title">Уведомления</div>

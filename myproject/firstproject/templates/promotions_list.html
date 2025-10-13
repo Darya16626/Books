@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Акции и скидки - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0; padding: 20px 0 40px 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            transition: background-color 0.4s, color 0.4s;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #fff;
+            padding: 40px 45px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme .container {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        h1 {
+            color: var(--color-accent);
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 35px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
+            transition: color 0.4s;
+        }
+        a.btn, a.btn-primary, a.btn-secondary {
+            display: inline-block;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+            transition: background-color 0.3s;
+            color: var(--color-button-text);
+            background-color: var(--color-button-bg);
+            user-select: none;
+        }
+        a.btn-primary:hover {
+            background-color: #004d99;
+        }
+        a.btn-secondary {
+            background-color: #ccc;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        a.btn-secondary:hover {
+            background-color: #aaa;
+            color: #222;
+        }
+        hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+            opacity: 0.6;
+            transition: border-color 0.4s;
+        }
+        body.dark-theme hr {
+            border-top-color: #444;
+        }
+        .promotion {
+            border: 1px solid #ccc;
+            padding: 20px 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            background: #f8fbff;
+            transition: background-color 0.4s, border-color 0.4s;
+        }
+        body.dark-theme .promotion {
+            background: #39405a;
+            border-color: #53618f;
+        }
+        .promotion h2 {
+            color: var(--color-accent);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 700;
+            transition: color 0.4s;
+        }
+        .promotion img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,102,204,0.2);
+            transition: box-shadow 0.3s;
+        }
+        .promotion img:hover {
+            box-shadow: 0 6px 18px rgba(0,102,204,0.5);
+        }
+        .promotion p,
+        .promotion ul,
+        .promotion a {
+            color: var(--color-text-light);
+            transition: color 0.4s;
+        }
+        body.dark-theme .promotion p,
+        body.dark-theme .promotion ul,
+        body.dark-theme .promotion a {
+            color: var(--color-text-dark);
+        }
+        .promotion ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        .promotion ul li {
+            margin-bottom: 6px;
+        }
+        .promotion ul li del {
+            color: #888;
+        }
+        .promotion a {
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-right: 10px;
+        }
+        .promotion a:hover {
+            color: #004d99;
+        }
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+            user-select: none;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <div class="container">
+        <h1>Акции и скидки</h1>
+        <a href="{% url 'promotion_create' %}" class="btn btn-primary">Создать новую акцию</a>
+        <hr>
+        {% if promotions %}
+            <div class="promotions-list">
+                {% for promo in promotions %}
+                    <div class="promotion">
+                        <h2>{{ promo.title }} - {{ promo.discount_percent }}% скидка</h2>
+                        {% if promo.image_url %}
+                            <a href="{% url 'promotion_books_list' promo.id %}">
+                                <img src="{{ promo.image_url }}" alt="{{ promo.title }}">
+                            </a>
+                        {% endif %}
+                        <p>{{ promo.description }}</p>
+                        <p><strong>Период:</strong> {{ promo.start_datetime }} - {{ promo.end_datetime }}</p>
+                        <p><strong>Книги в акции:</strong></p>
+                        <ul>
+                            {% for pb in promo.promotion_books.all %}
+                                <li>{{ pb.book.title }}:
+                                    <del>{{ pb.book.original_price }} ₽</del>
+                                    <strong>{{ pb.book.price|floatformat:2 }}</strong> ₽
+                                </li>
+                            {% empty %}
+                                <li>Нет книг</li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{% url 'promotion_edit' promo.id %}">Редактировать</a> |
+                        <a href="{% url 'promotion_delete' promo.id %}">Удалить</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Акций пока нет.</p>
+        {% endif %}
+
+        <a href="{% url 'admin_page' %}" class="btn btn-secondary" style="margin-top:15px;">Назад</a>
+    </div>
+</body>
+</html>

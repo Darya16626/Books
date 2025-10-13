@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Товары в акции - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0; padding: 20px 0 40px 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            transition: background-color 0.4s, color 0.4s;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #fff;
+            padding: 40px 45px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme .container {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        h1 {
+            color: var(--color-accent);
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 35px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
+            transition: color 0.4s;
+        }
+        a.btn, a.btn-secondary {
+            display: inline-block;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+            transition: background-color 0.3s;
+            color: var(--color-button-text);
+            background-color: var(--color-button-bg);
+            user-select: none;
+        }
+        a.btn-secondary {
+            background-color: #ccc;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        a.btn-secondary:hover {
+            background-color: #aaa;
+            color: #222;
+        }
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .book-card {
+            background: #f4f9ff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,102,204,0.15);
+            padding: 16px;
+            transition: box-shadow 0.3s ease;
+            text-align: center;
+            color: var(--color-text-light);
+            transition: background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme .book-card {
+            background: #39405a;
+            color: var(--color-text-dark);
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+        }
+        .book-card:hover {
+            box-shadow: 0 6px 20px rgba(0,102,204,0.35);
+        }
+        .book-image {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            transition: background-color 0.4s, border-color 0.4s;
+        }
+        body.dark-theme .book-image {
+            background: #28304d;
+            border-color: #53618f;
+        }
+        .book-image.no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-style: italic;
+            height: 180px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+        }
+        body.dark-theme .book-image.no-image {
+            background: #2f3a59;
+            border-color: #53618f;
+            color: #9aaacf;
+        }
+        .book-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0 0 6px 0;
+            color: var(--color-accent);
+            transition: color 0.4s;
+        }
+        .book-author {
+            font-style: italic;
+            color: #555;
+            margin: 0 0 6px 0;
+        }
+        body.dark-theme .book-author {
+            color: #a3b0d6;
+        }
+        .book-price {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .book-price del {
+            color: #888;
+            margin-right: 6px;
+        }
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+            user-select: none;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <div class="container">
+        <h1>Товары в акции: {{ promotion.title }}</h1>
+
+        {% if books %}
+        <div class="books-grid">
+            {% for pb in books %}
+            <div class="book-card">
+                {% with pb.book.get_image_list|first as img_url %}
+                    {% if img_url %}
+                        <img src="{{ img_url }}" alt="{{ pb.book.title }}" class="book-image" />
+                    {% else %}
+                        <div class="book-image no-image">Нет изображения</div>
+                    {% endif %}
+                {% endwith %}
+
+                <h3 class="book-title">{{ pb.book.title }}</h3>
+                <p class="book-author">Автор: {{ pb.book.author }}</p>
+                <p class="book-price">
+                    {% if pb.book.original_price and pb.book.original_price != pb.book.price %}
+                        <del>{{ pb.book.original_price }} ₽</del> <strong>{{ pb.book.price|floatformat:2 }} ₽</strong>
+                    {% else %}
+                        {{ pb.book.price }} ₽
+                    {% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>Товары в акции отсутствуют.</p>
+        {% endif %}
+
+        <a href="{% url 'promotions_list' %}" class="btn btn-secondary" style="margin-top:15px;">Назад</a>
+    </div>
+</body>
+</html>

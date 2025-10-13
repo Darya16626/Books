@@ -1,0 +1,297 @@
+{% load static %}
+{% block content %}
+<h1>Избранное</h1>
+<a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную страницу">← Вернуться на главную</a>
+
+{% if favorites %}
+<div class="favorites-grid">
+  {% for fav in favorites %}
+  <div class="fav-card">
+    {% with fav.book.get_image_list|first as image %}
+      {% if image %}
+        <a href="{% url 'clients_book_detail' fav.book.id %}">
+          <img src="{{ image }}" alt="{{ fav.book.title }}" class="fav-image">
+        </a>
+      {% else %}
+        <a href="{% url 'clients_book_detail' fav.book.id %}">
+          <div class="fav-no-image">Нет изображения</div>
+        </a>
+      {% endif %}
+    {% endwith %}
+    <div class="fav-info">
+      <a href="{% url 'clients_book_detail' fav.book.id %}" class="fav-title">{{ fav.book.title }}</a>
+      <p class="fav-author">Автор: {{ fav.book.author }}</p>
+      <p class="fav-price">
+        {% if fav.book.original_price and fav.book.price < fav.book.original_price %}
+          <span class="old-price">{{ fav.book.original_price|floatformat:2 }} ₽</span>
+          <span class="new-price">{{ fav.book.price|floatformat:2 }} ₽</span>
+        {% else %}
+          <span>{{ fav.book.price|floatformat:2 }} ₽</span>
+        {% endif %}
+      </p>
+      <p>Доставка: {{ fav.book.delivery_days }} дней</p>
+      <p>На складе: {{ fav.book.stock_quantity }}</p>
+      <p>Рейтинг: ({{ fav.book.rating|floatformat:1 }})</p>
+      <form method="post" class="remove-fav-form">
+        {% csrf_token %}
+        <input type="hidden" name="fav_id" value="{{ fav.id }}">
+        <button type="submit" name="action" value="remove" class="btn-remove" title="Удалить из избранного">Удалить</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="empty-message">У вас нет добавленных в избранное товаров.</p>
+{% endif %}
+
+<style>
+:root {
+  --color-bg-light: #f9f9f9;
+  --color-text-light: #222222;
+  --color-accent: #0066cc;
+  --color-error: #e74c3c;
+  --color-bg-dark: #1e1e2f;
+  --color-text-dark: #eaeaea;
+  --color-button-bg: var(--color-accent);
+  --color-button-text: #ffffff;
+  --border-radius: 8px;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+  background: var(--color-bg-light);
+  font-family: var(--font-family);
+  color: var(--color-text-light);
+  margin: 0;
+  padding: 20px 20px 40px;
+  transition: background-color 0.4s, color 0.4s;
+}
+body.dark-theme {
+  background: var(--color-bg-dark);
+  color: var(--color-text-dark);
+}
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-weight: 700;
+  color: var(--color-accent);
+  transition: color 0.4s;
+}
+body.dark-theme h1 {
+  color: #80b4ff;
+}
+a.btn-back-to-main {
+  display: inline-block;
+  color: var(--color-accent);
+  font-weight: 700;
+  border: 2px solid var(--color-accent);
+  padding: 8px 16px;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  margin-bottom: 24px;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+a.btn-back-to-main:hover, a.btn-back-to-main:focus {
+  background-color: var(--color-accent);
+  color: var(--color-button-text);
+  outline: none;
+}
+body.dark-theme a.btn-back-to-main {
+  color: #80b4ff;
+  border-color: #80b4ff;
+}
+body.dark-theme a.btn-back-to-main:hover, body.dark-theme a.btn-back-to-main:focus {
+  background-color: #004d99;
+  color: #fff;
+}
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.fav-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.2s ease, background-color 0.4s, color 0.4s;
+}
+body.dark-theme .fav-card {
+  background: #2a2a40;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  color: var(--color-text-dark);
+}
+.fav-card:hover {
+  box-shadow: 0 14px 38px rgba(0,0,0,0.15);
+  transform: translateY(-6px);
+}
+.fav-image {
+  width: 100%;
+  height: 240px;
+  object-fit: contain;
+  background-color: #fafafa;
+  transition: transform 0.3s ease, background-color 0.4s;
+}
+body.dark-theme .fav-image {
+  background-color: #3a3a57;
+}
+.fav-card:hover .fav-image {
+  transform: scale(1.05);
+}
+.fav-no-image {
+  width: 100%;
+  height: 240px;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #bbb;
+  font-style: italic;
+  font-size: 1rem;
+  transition: background-color 0.4s, color 0.4s;
+}
+body.dark-theme .fav-no-image {
+  background: #555;
+  color: #bbb;
+}
+.fav-info {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.fav-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2732;
+  margin-bottom: 8px;
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+  transition: color 0.3s;
+}
+body.dark-theme .fav-title {
+  color: #adc6ff;
+}
+.fav-title:hover {
+  color: #0d1a28;
+  text-decoration: underline;
+}
+body.dark-theme .fav-title:hover {
+  color: #80b4ff;
+}
+.fav-author {
+  font-size: 0.95rem;
+  color: #586069;
+  margin-bottom: 12px;
+  min-height: 44px;
+  line-height: 1.3;
+  transition: color 0.3s;
+}
+body.dark-theme .fav-author {
+  color: #a0acb4;
+}
+.fav-price {
+  font-weight: 700;
+  font-size: 1.14rem;
+  color: #27ae60;
+  margin-bottom: 10px;
+}
+.old-price {
+  color: #999;
+  text-decoration: line-through;
+  margin-right: 10px;
+  font-weight: 500;
+}
+.new-price {
+  color: #d32f2f;
+}
+p {
+  margin: 4px 0 8px 0;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: color 0.3s;
+}
+body.dark-theme p {
+  color: #c0c5cc;
+}
+.remove-fav-form {
+  margin-top: auto;
+  width: 100%;
+}
+.btn-remove {
+  background-color: #d32f2f;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--color-button-text);
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  box-shadow: 0 3px 9px rgba(211,47,47,0.7);
+  transition: background-color 0.25s ease-in-out;
+}
+.btn-remove:hover {
+  background-color: #a82323;
+}
+.empty-message {
+  font-style: italic;
+  color: #777;
+  margin-top: 60px;
+  font-size: 1.3rem;
+  text-align: center;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: color 0.4s;
+}
+body.dark-theme .empty-message {
+  color: #bbb;
+}
+/* Кнопка переключения темы */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--color-button-bg);
+  border: none;
+  color: var(--color-button-text);
+  padding: 10px 14px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+  transition: background-color 0.3s;
+  z-index: 1000;
+}
+.theme-toggle:hover {
+  background-color: #004d99;
+}
+</style>
+
+<script>
+  window.onload = function() {
+    if(localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-theme');
+    }
+  };
+  function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    if(document.body.classList.contains('dark-theme')) {
+      localStorage.setItem('theme', 'dark');
+    } else {
+      localStorage.setItem('theme', 'light');
+    }
+  }
+</script>
+
+<button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+{% endblock %}

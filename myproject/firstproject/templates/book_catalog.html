@@ -1,0 +1,335 @@
+{% load static %}
+{% block content %}
+<style>
+    :root {
+        --color-bg-light: #f9f9f9;
+        --color-text-light: #222222;
+        --color-accent: #0066cc;
+        --color-error: #e74c3c;
+        --color-bg-dark: #1e1e2f;
+        --color-text-dark: #eaeaea;
+        --color-button-bg: var(--color-accent);
+        --color-button-text: #ffffff;
+        --border-radius: 8px;
+        --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+        background: var(--color-bg-light);
+        color: var(--color-text-light);
+        font-family: var(--font-family);
+        transition: background-color 0.4s, color 0.4s;
+    }
+    body.dark-theme {
+        background: var(--color-bg-dark);
+        color: var(--color-text-dark);
+    }
+    h2 {
+        font-weight: 700;
+        font-size: 2rem;
+        letter-spacing: 1px;
+        color: var(--color-accent);
+        margin-bottom: 20px;
+    }
+    a.button-primary {
+        display: inline-block;
+        margin-bottom: 20px;
+        background: var(--color-accent);
+        color: var(--color-button-text);
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+    }
+    a.button-primary:hover {
+        background-color: #004d99;
+    }
+    form {
+        margin-bottom: 20px;
+    }
+    input[type="text"], select, input[type="number"] {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-family: var(--font-family);
+        transition: background-color 0.4s, color 0.4s, border-color 0.3s;
+        font-size: 1rem;
+    }
+    input[type="text"]:focus, select:focus, input[type="number"]:focus {
+        border-color: var(--color-accent);
+        outline: none;
+    }
+    button, #toggleFilterBtn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        font-family: var(--font-family);
+        transition: background-color 0.3s ease;
+    }
+    button[type="submit"] {
+        background-color: #28a745;
+        color: white;
+        margin-left: 10px;
+    }
+    button[type="submit"]:hover {
+        background-color: #218838;
+    }
+    #toggleFilterBtn {
+        background-color: var(--color-accent);
+        color: var(--color-button-text);
+        margin-left: 15px;
+    }
+    #toggleFilterBtn:hover {
+        background-color: #004d99;
+    }
+    #filterPanel {
+        margin-top: 15px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background: var(--color-bg-light);
+        max-width: 600px;
+        display: none;
+        transition: background-color 0.4s, color 0.4s, border-color 0.3s;
+    }
+    body.dark-theme #filterPanel {
+        background: #2a2a40;
+        border-color: #555;
+    }
+    /* Books grid and cards */
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+        gap: 20px;
+    }
+    .book-card {
+        background: #f4f9ff;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,102,204,0.15);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.3s ease, background-color 0.4s;
+    }
+    .book-card:hover {
+        box-shadow: 0 6px 18px rgba(0,102,204,0.3);
+    }
+    body.dark-theme .book-card {
+        background: #2a2a40;
+        box-shadow: 0 6px 18px rgba(0,102,204,0.6);
+        color: var(--color-text-dark);
+    }
+    .book-image {
+        width: 100%;
+        height: 180px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #fff;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        transition: background-color 0.4s;
+    }
+    body.dark-theme .book-image {
+        background: #3a3a57;
+        border-color: #555;
+    }
+    .book-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin: 0 0 4px 0;
+        color: #004d99;
+        transition: color 0.4s;
+    }
+    body.dark-theme .book-title {
+        color: var(--color-accent);
+    }
+    .book-author {
+        font-style: italic;
+        color: #555;
+        margin: 0 0 8px 0;
+        transition: color 0.4s;
+    }
+    body.dark-theme .book-author {
+        color: #bbb;
+    }
+    .book-info {
+        font-size: 0.9rem;
+        color: #333;
+        flex-grow: 1;
+        transition: color 0.4s;
+    }
+    body.dark-theme .book-info {
+        color: var(--color-text-dark);
+    }
+    .book-price {
+        font-weight: 700;
+        color: var(--color-accent);
+        margin-top: 8px;
+        font-size: 1.1rem;
+        transition: color 0.4s;
+    }
+    .book-actions {
+        margin-top: 12px;
+        text-align: center;
+    }
+    .book-actions a {
+        text-decoration: none;
+        padding: 6px 12px;
+        margin: 0 6px;
+        border-radius: 6px;
+        color: white;
+        background-color: var(--color-accent);
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+        display: inline-block;
+    }
+    .book-actions a:hover {
+        background-color: #004d99;
+    }
+    /* Кнопка переключения темы */
+    .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--color-accent);
+        border: none;
+        color: var(--color-button-text);
+        padding: 10px 14px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+        transition: background-color 0.3s;
+        z-index: 1000;
+    }
+    .theme-toggle:hover {
+        background-color: #004d99;
+    }
+</style>
+
+<script>
+    document.getElementById('toggleFilterBtn').addEventListener('click', function() {
+        var panel = document.getElementById('filterPanel');
+        if (panel.style.display === 'none' || panel.style.display === '') {
+            panel.style.display = 'block';
+            this.textContent = 'Фильтрация ▲';
+        } else {
+            panel.style.display = 'none';
+            this.textContent = 'Фильтрация ▼';
+        }
+    });
+
+    window.onload = function() {
+        if(localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+        var hasFilters = false;
+        ['genre', 'author', 'min_rating', 'max_price'].forEach(function(name){
+            if(new URLSearchParams(window.location.search).get(name)){
+                hasFilters = true;
+            }
+        });
+        if(hasFilters){
+            document.getElementById('filterPanel').style.display = 'block';
+            document.getElementById('toggleFilterBtn').textContent = 'Фильтрация ▲';
+        }
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-theme');
+        if(document.body.classList.contains('dark-theme')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+</script>
+
+<button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+<h2>Каталог книг</h2>
+
+<a href="{% url 'book_create' %}" class="button-primary">Добавить книгу</a>
+
+<form method="get">
+    <input type="text" name="search" placeholder="Поиск по названию или артикулу" value="{{ search_query }}" />
+    <button type="submit">Найти</button>
+
+    <button type="button" id="toggleFilterBtn">Фильтрация ▼</button>
+
+    <div id="filterPanel">
+        <label>Жанр:
+            <select name="genre">
+                <option value="">Все жанры</option>
+                {% for g in genres %}
+                    <option value="{{ g }}" {% if g == selected_genre %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br/><br/>
+        <label>Автор:
+            <select name="author">
+                <option value="">Все авторы</option>
+                {% for a in authors %}
+                    <option value="{{ a }}" {% if a == author_filter %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br/><br/>
+        <label>Минимальный рейтинг:
+            <input type="number" step="0.1" min="0" max="5" name="min_rating" value="{{ min_rating }}" />
+        </label>
+        <br/><br/>
+        <label>Максимальная цена:
+            <input type="number" step="0.01" min="0" name="max_price" value="{{ max_price }}" />
+        </label>
+        <br/><br/>
+        <button type="submit" style="background-color: #004d99;">Применить фильтры</button>
+    </div>
+</form>
+
+<div class="books-grid">
+    {% for book in books %}
+    <div class="book-card">
+        {% with book.get_image_list|first as img_url %}
+            {% if img_url %}
+            <a href="{% url 'book_detail' book.id %}"><img src="{{ img_url }}" alt="{{ book.title }}" class="book-image"/></a>
+            {% else %}
+            <a href="{% url 'book_detail' book.id %}"><div class="book-image no-image">Нет изображения</div></a>
+            {% endif %}
+        {% endwith %}
+        <h3 class="book-title">
+            <a href="{% url 'book_detail' book.id %}" class="book-link">{{ book.title }}</a>
+        </h3>
+        <p class="book-author">Автор: {{ book.author }}</p>
+        <p class="book-info">
+            <strong>Жанр:</strong> {{ book.genre }}<br/>
+            <strong>Описание:</strong> {{ book.description|truncatechars:100 }}<br/>
+            <strong>Рейтинг:</strong> {{ book.rating|floatformat:1 }}<br/>
+            <strong>Дней доставки:</strong> {{ book.delivery_days }}<br/>
+            <strong>В наличии:</strong> {{ book.stock_quantity }} шт.<br/>
+            <strong>Артикул:</strong> {{ book.sku }}
+        </p>
+        <p class="book-price">
+            {% if book.original_price and book.price != book.original_price %}
+                <del>{{ book.original_price }} ₽</del> <strong>{{ book.price|floatformat:2 }} ₽</strong>
+            {% else %}
+                {{ book.price|floatformat:2 }} ₽
+            {% endif %}
+        </p>
+        <div class="book-actions">
+            <a href="{% url 'book_edit' book.id %}">Редактировать</a>
+            <a href="{% url 'book_delete' book.id %}">Удалить</a>
+        </div>
+    </div>
+    {% empty %}
+    <p>Книг не найдено</p>
+    {% endfor %}
+</div>
+
+<a href="{% url 'admin_page' %}" class="button-primary" style="margin-top:15px;">Назад</a>
+
+{% endblock %}

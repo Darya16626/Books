@@ -1,0 +1,312 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Выбор товаров для акции - BookHaven</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <style>
+        :root {
+            --color-bg-light: #f9f9f9;
+            --color-text-light: #222222;
+            --color-accent: #0066cc;
+            --color-error: #e74c3c;
+            --color-bg-dark: #1e1e2f;
+            --color-text-dark: #eaeaea;
+            --color-button-bg: var(--color-accent);
+            --color-button-text: #ffffff;
+            --border-radius: 8px;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0; padding: 20px 0 40px 0;
+            background: var(--color-bg-light);
+            color: var(--color-text-light);
+            font-family: var(--font-family);
+            transition: background-color 0.4s, color 0.4s;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        body.dark-theme {
+            background: var(--color-bg-dark);
+            color: var(--color-text-dark);
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #fff;
+            padding: 40px 45px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: background-color 0.4s, color 0.4s;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        body.dark-theme .container {
+            background: #2a2a40;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        h1 {
+            color: var(--color-accent);
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 35px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
+            transition: color 0.4s;
+        }
+        form.form-inline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input.form-control, select.form-control {
+            padding: 8px 12px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #fafafa;
+            color: #222;
+            transition: border-color 0.3s ease, background-color 0.4s, color 0.4s;
+        }
+        body.dark-theme input.form-control,
+        body.dark-theme select.form-control {
+            background: #3a3a57;
+            color: var(--color-text-dark);
+            border-color: #555a99;
+        }
+        input.form-control:focus, select.form-control:focus {
+            border-color: var(--color-accent);
+            outline: none;
+        }
+        button.btn {
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+            transition: background-color 0.3s;
+            user-select: none;
+            color: var(--color-button-text);
+        }
+        button.btn-primary {
+            background-color: var(--color-button-bg);
+        }
+        button.btn-primary:hover {
+            background-color: #004d99;
+        }
+        button.btn-success {
+            background-color: #28a745;
+        }
+        button.btn-success:hover {
+            background-color: #1e7e34;
+        }
+        a.btn-secondary {
+            background-color: #ccc;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-decoration: none;
+            display: inline-block;
+            user-select: none;
+            transition: background-color 0.3s;
+        }
+        a.btn-secondary:hover {
+            background-color: #aaa;
+            color: #222;
+        }
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .book-card {
+            position: relative;
+            background: #f4f9ff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,102,204,0.15);
+            padding: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            user-select: none;
+            transition: box-shadow 0.3s ease, background-color 0.4s, color 0.4s;
+            color: var(--color-text-light);
+        }
+        body.dark-theme .book-card {
+            background: #39405a;
+            color: var(--color-text-dark);
+            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
+        }
+        .book-card:hover {
+            box-shadow: 0 6px 18px rgba(0,102,204,0.3);
+        }
+        .book-checkbox {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .book-image {
+            width: 120px;
+            height: 160px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #fff;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+            margin-right: 15px;
+            transition: background-color 0.4s, border-color 0.4s;
+        }
+        body.dark-theme .book-image {
+            background: #28304d;
+            border-color: #53618f;
+        }
+        .book-image.no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-style: italic;
+            width: 120px;
+            height: 160px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-right: 15px;
+        }
+        body.dark-theme .book-image.no-image {
+            background: #2f3a59;
+            border-color: #53618f;
+            color: #9aaacf;
+        }
+        .book-info {
+            flex-grow: 1;
+        }
+        .book-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--color-accent);
+            margin: 0 0 8px 0;
+            transition: color 0.4s;
+        }
+        .book-author, .book-genre, .book-price {
+            margin: 2px 0;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        body.dark-theme .book-author,
+        body.dark-theme .book-genre,
+        body.dark-theme .book-price {
+            color: #a3b0d6;
+        }
+        /* Текст кнопок с отступом сверху */
+        .mt-3 {
+            margin-top: 1rem;
+        }
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            border: none;
+            color: var(--color-button-text);
+            padding: 10px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+            transition: background-color 0.3s;
+            z-index: 1000;
+            user-select: none;
+        }
+        .theme-toggle:hover {
+            background-color: #004d99;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+
+    <div class="container">
+        <h1>Выбор товаров для акции: {{ promotion.title }}</h1>
+
+        <form method="get" class="form-inline mb-3">
+            <input type="text" name="search" placeholder="Поиск по названию, автору, жанру" value="{{ search_query }}" class="form-control" style="width: 250px;">
+            <select name="genre" class="form-control">
+                <option value="">Все жанры</option>
+                {% for g in genres %}
+                    <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+            </select>
+            <select name="author" class="form-control">
+                <option value="">Все авторы</option>
+                {% for a in authors %}
+                    <option value="{{ a }}" {% if selected_author == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Фильтровать</button>
+        </form>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="books-grid">
+                {% for book in books %}
+                <label class="book-card">
+                    <input type="checkbox" name="selected_books" value="{{ book.id }}" {% if book.id in selected_book_ids %}checked{% endif %} class="book-checkbox" />
+                    {% with book.get_image_list|first as img_url %}
+                        {% if img_url %}
+                            <img src="{{ img_url }}" alt="{{ book.title }}" class="book-image" />
+                        {% else %}
+                            <div class="book-image no-image">Нет изображения</div>
+                        {% endif %}
+                    {% endwith %}
+                    <div class="book-info">
+                        <h3 class="book-title">{{ book.title }}</h3>
+                        <p class="book-author">Автор: {{ book.author }}</p>
+                        <p class="book-genre">Жанр: {{ book.genre }}</p>
+                        <p class="book-price">Цена: {{ book.price }} ₽</p>
+                    </div>
+                </label>
+                {% empty %}
+                    <p>Товаров не найдено.</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-success mt-3">Сохранить выбранные</button>
+            <a href="{% url 'promotion_edit' promotion.id %}" class="btn btn-secondary mt-3">Назад</a>
+        </form>
+    </div>
+
+    <script>
+        window.onload = function() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        };
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            if(document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</body>
+</html>

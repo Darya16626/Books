@@ -1,7 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
-<head>
+<head> 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Клиент - BookHaven</title>
@@ -91,7 +91,6 @@
             margin-bottom: 30px;
             color: inherit;
         }
-        /* Поисковая строка */
         .search-bar {
             width: 100%;
             margin-bottom: 30px;
@@ -123,7 +122,6 @@
         .search-bar button:hover {
             background-color: #004d99;
         }
-        /* Кнопки функций */
         .client-panel {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -198,7 +196,8 @@
         <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
     </header>
     <main>
-        <h2>Добро пожаловать, {{ user.email }}!</h2>
+        <h2>Добро пожаловать, {{ user.get_full_name|default:user.email }}!</h2>
+        <p class="welcome">Роль: {{ user.profile.get_role_display }}</p>
         <p class="welcome">Рады видеть Вас в нашем книжном магазине! Выбирайте лучшие книги и наслаждайтесь чтением.</p>
 
         <form class="search-bar" action="#" method="GET" role="search" aria-label="Поиск книг">
@@ -207,34 +206,30 @@
         </form>
 
         <section class="client-panel">
-            <div class="panel-card" title="Каталог книг">
+            <a href="{% url 'client_book_catalog' %}" class="panel-card" title="Каталог книг" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">📚</div>
                 <div class="card-title">Каталог</div>
-            </div>
-            <div class="panel-card" title="Избранное">
+            </a>
+            <a href="{% url 'favorites_view' %}" class="panel-card" title="Избранное" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">⭐</div>
                 <div class="card-title">Избранное</div>
-            </div>
-            <div class="panel-card" title="Корзина">
+            </a>
+            <a href="{% url 'cart_view' %}" class="panel-card" title="Корзина" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">🛒</div>
                 <div class="card-title">Корзина</div>
-            </div>
-            <div class="panel-card" title="Оформление заказа">
-                <div class="card-icon">✅</div>
-                <div class="card-title">Оформить заказ</div>
-            </div>
+            </a>            
             <div class="panel-card" title="История заказов">
                 <div class="card-icon">📜</div>
                 <div class="card-title">История заказов</div>
             </div>
-            <div class="panel-card" title="Профиль">
+            <a href="{% url 'client_profile' %}" class="panel-card" title="Профиль" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">👤</div>
                 <div class="card-title">Профиль</div>
-            </div>
-            <div class="panel-card" title="Баланс и платежные данные">
+            </a>
+            <a href="{% url 'balance' %}" class="panel-card" title="Баланс и платежные данные" style="text-decoration:none; cursor:pointer;">
                 <div class="card-icon">💳</div>
                 <div class="card-title">Баланс и оплата</div>
-            </div>
+            </a>
             <div class="panel-card" title="Рецензии и рейтинги">
                 <div class="card-icon">📝</div>
                 <div class="card-title">Отзывы и рейтинги</div>
@@ -242,10 +237,6 @@
             <div class="panel-card" title="Чат с поддержкой" onclick="location.href='#'">
                 <div class="card-icon">💬</div>
                 <div class="card-title">Чат поддержки</div>
-            </div>
-            <div class="panel-card" title="Настройки" onclick="location.href='#'">
-                <div class="card-icon">⚙️</div>
-                <div class="card-title">Настройки</div>
             </div>
         </section>
 

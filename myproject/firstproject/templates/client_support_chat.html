@@ -1,0 +1,751 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Чат с поддержкой</title>
+
+<!-- Подключение необычных шрифтов Google Fonts с поддержкой кириллицы -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
+
+<style>
+  
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+
+    --font-family: 'Cinzel Decorative', serif;
+
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+body.dark-theme {
+    --color-bg: var(--color-bg-dark);
+    --color-text: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
+}
+
+body:not(.dark-theme) {
+    --color-bg: var(--color-bg-light);
+    --color-text: var(--color-text-light);
+    --btn-shadow: 0 5px 15px rgba(0,102,255,0.4);
+    --card-shadow: var(--card-shadow-light);
+}
+
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Canvas и SVG для космического фона */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+/* Основная обертка контента */
+.main-wrapper {
+    width: 100%;
+    max-width: 700px;
+    border-radius: var(--border-radius);
+    padding: 10px;
+    position: relative;
+    margin-bottom: 30px;
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    background: rgba(255 255 255 / 0.85);
+    z-index: 10;
+    transition: box-shadow 0.4s, border-radius 0.4s, background 0.4s;
+}
+
+body.dark-theme .main-wrapper {
+    background: rgba(30 30 47 / 0.85);
+}
+
+main {
+    z-index: 11;
+    background: var(--color-bg);
+    border-radius: var(--border-radius);
+    padding: 35px 45px;
+    box-shadow: var(--card-shadow);
+    color: var(--color-text);
+    text-align: center;
+    filter: brightness(1.3);
+    transition: background-color 0.4s, color 0.4s, border-radius 0.4s;
+}
+body.dark-theme main {
+    filter: brightness(1);
+}
+
+/* Заголовки */
+h1, h2 {
+    margin-top: 40px;
+    font-weight: 600;
+    font-family: var(--font-family);
+    color: var(--color-accent);
+    text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
+}
+
+/* Стилизуем чат */
+.select-manager {
+    max-width: 360px;
+    margin: 0 auto 30px;
+    font-family: var(--font-family);
+}
+
+label[for="manager-select"] {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #004a99;
+    user-select: none;
+    transition: color 0.4s;
+}
+
+body.dark-theme label[for="manager-select"] {
+    color: #a3c4ff;
+}
+
+select#manager-select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--color-accent);
+    border-radius: var(--border-radius);
+    background: #fafafa;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: border-color 0.3s ease, background-color 0.4s, color 0.4s;
+}
+
+body.dark-theme select#manager-select {
+    background: #2b2b45;
+    border-color: #5577bb;
+    color: var(--color-text-dark);
+}
+
+select#manager-select:hover,
+select#manager-select:focus {
+    border-color: #004a99;
+    outline: none;
+}
+
+.chat-partner {
+    max-width: 700px;
+    margin: 0 auto 25px;
+    font-style: italic;
+    color: var(--color-text);
+    font-family: var(--font-family);
+    font-size: 1.1rem;
+}
+
+.notification {
+    max-width: 700px;
+    margin: 10px auto 20px;
+    font-weight: 700;
+    text-align: center;
+    color: #e74c3c;
+    font-family: var(--font-family);
+}
+
+/* Чат-бокс */
+#chat-box {
+    max-width: 700px;
+    margin: 0 auto 20px;
+    background: rgba(255 255 255 / 0.9);
+    border-radius: 12px;
+    padding: 20px;
+    height: 420px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,102,204,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-family: var(--font-family);
+    color: var(--color-text);
+    transition: background-color 0.4s, color 0.4s;
+}
+
+body.dark-theme #chat-box {
+    background: rgba(40 40 65 / 0.85);
+    box-shadow: 0 10px 30px rgba(0,64,120,0.7);
+    color: var(--color-text-dark);
+}
+
+/* Сообщения */
+.message {
+    max-width: 70%;
+    padding: 12px 18px;
+    border-radius: 20px;
+    position: relative;
+    font-size: 1rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: background-color 0.4s, color 0.4s;
+}
+
+.message.sender-you {
+    background-color: #cfe9d8;
+    margin-left: auto;
+    text-align: right;
+    color: #2a5d27;
+    box-shadow: 0 2px 8px rgba(34,97,34,0.3);
+}
+
+body.dark-theme .message.sender-you {
+    background-color: #1e4620;
+    color: #a3d9a3;
+    box-shadow: 0 2px 12px rgba(100, 180, 100, 0.6);
+}
+
+.message.sender-you strong {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.message.sender-other {
+    background-color: #e6f0ff;
+    margin-right: auto;
+    text-align: left;
+    color: #204e8f;
+    box-shadow: 0 2px 8px rgba(33,73,138,0.3);
+}
+
+body.dark-theme .message.sender-other {
+    background-color: #243a6a;
+    color: #cddcff;
+    box-shadow: 0 2px 12px rgba(60,90,150,0.6);
+}
+
+.message.sender-other strong {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+/* Время сообщения */
+.timestamp {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #666;
+}
+
+body.dark-theme .timestamp {
+    color: #aaa;
+}
+
+/* Кнопки редактирования и удаления */
+.delete-btn, .edit-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    font-weight: 700;
+    transition: color 0.3s ease;
+    font-family: var(--font-family);
+}
+
+.delete-btn {
+    color: #e74c3c;
+}
+
+.delete-btn:hover {
+    color: #c0392b;
+    text-decoration: underline;
+}
+
+.edit-btn {
+    color: #3498db;
+    margin-left: 8px;
+}
+
+.edit-btn:hover {
+    color: #2161ad;
+    text-decoration: underline;
+}
+
+/* Форма отправки сообщения */
+.message-form {
+    max-width: 700px;
+    margin: 0 auto 30px;
+    display: flex;
+    gap: 10px;
+    font-family: var(--font-family);
+}
+
+.message-form textarea {
+    flex: 1;
+    resize: vertical;
+    min-height: 80px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid var(--color-accent);
+    border-radius: 12px;
+    font-family: var(--font-family);
+    transition: border-color 0.3s ease;
+    color: var(--color-text);
+    background: #fafafa;
+}
+
+body.dark-theme .message-form textarea {
+    background: #2a2a48;
+    color: var(--color-text-dark);
+    border-color: #5577bb;
+}
+
+.message-form textarea:focus {
+    border-color: #004a99;
+    outline: none;
+}
+
+.message-form button {
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    padding: 0 24px;
+    font-size: 1.1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: var(--btn-shadow);
+    transition: background-color 0.3s ease;
+}
+
+.message-form button:hover {
+    background-color: #004a99;
+}
+
+/* Форма редактирования сообщения */
+.edit-form {
+    margin-top: 8px;
+}
+
+.edit-form textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1.5px solid #bbb;
+    font-family: var(--font-family);
+}
+
+.edit-form button {
+    margin-top: 4px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* Отключено сообщение */
+.disabled-message {
+    max-width: 700px;
+    margin: 0 auto 30px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+/* Кнопка назад */
+.back-button {
+    margin-top: 20px;
+    font-family: var(--font-family);
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    user-select: none;
+    transition: color 0.3s;
+    display: inline-block;
+}
+
+.back-button:hover {
+    color: #004a99;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Чат с поддержкой</h1>
+    <a href="{% url 'client_page' %}" class="back-link">← Назад</a>
+</header>
+
+<!-- Canvas для звезд и комет -->
+<canvas id="star-canvas"></canvas>
+
+<!-- SVG для созвездий -->
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<div class="main-wrapper" role="main" aria-label="Чат с поддержкой">
+    <main>
+        <form method="get" class="select-manager" aria-label="Выберите менеджера для общения">
+            <label for="manager-select">Выберите менеджера для общения:</label>
+            <select id="manager-select" name="manager_id" onchange="this.form.submit()">
+                {% for m in managers %}
+                    <option value="{{ m.id }}" {% if m.id == selected_manager.id %}selected{% endif %}>
+                        {{ m.get_full_name }} ({{ m.profile.role }})
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <p class="chat-partner" aria-live="polite">Общаетесь с менеджером: <strong>{{ chat_partner_name }}</strong></p>
+
+        {% if notification %}
+            <p class="notification" role="alert">{{ notification }}</p>
+        {% endif %}
+
+        <div id="chat-box" role="log" aria-live="polite" aria-relevant="additions">
+            {% for message in messages %}
+                <div class="message {% if message.sender == user %}sender-you{% else %}sender-other{% endif %}" data-message-id="{{ message.id }}">
+                    <strong>{{ message.sender.get_full_name }} ({{ message.sender.profile.role }}):</strong>
+                    <div class="message-text" id="message-text-{{ message.id }}">{{ message.text|linebreaks }}</div>
+                    <small class="timestamp">{{ message.created_at }}{% if message.updated_at and message.updated_at > message.created_at %} (ред.){% endif %}</small>
+                    {% if message.sender == user and not message.is_deleted %}
+                        <form method="post" action="{% url 'delete_message' message.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="delete-btn" onclick="return confirm('Удалить это сообщение?');" aria-label="Удалить сообщение">Удалить</button>
+                        </form>
+                        <button class="edit-btn" onclick="showEditForm({{ message.id }});" aria-label="Редактировать сообщение">Редактировать</button>
+                        <form method="post" action="{% url 'edit_message' message.id %}" class="edit-form" id="edit-form-{{ message.id }}" style="display:none;">
+                            {% csrf_token %}
+                            <textarea name="text" rows="3" required>{{ message.text }}</textarea>
+                            <button type="submit">Сохранить</button>
+                            <button type="button" onclick="hideEditForm({{ message.id }});">Отмена</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="text-align:center; color:#666;">Начните разговор, написав сообщение.</p>
+            {% endfor %}
+        </div>
+
+        {% if can_send %}
+            <form method="post" class="message-form" aria-label="Форма отправки сообщения">
+                {% csrf_token %}
+                <textarea name="message" rows="3" required placeholder="Напишите сообщение..."></textarea>
+                <button type="submit">Отправить</button>
+            </form>
+        {% else %}
+            <p class="disabled-message">Отправка сообщений прекращена.</p>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+function showEditForm(messageId) {
+    document.getElementById('message-text-' + messageId).style.display = 'none';
+    document.getElementById('edit-form-' + messageId).style.display = 'block';
+}
+function hideEditForm(messageId) {
+    document.getElementById('edit-form-' + messageId).style.display = 'none';
+    document.getElementById('message-text-' + messageId).style.display = 'block';
+}
+
+// Автопрокрутка чата вниз
+const chatBox = document.getElementById('chat-box');
+chatBox.scrollTop = chatBox.scrollHeight;
+
+// Анимация космического фона
+
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+
+class Star {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.7)'
+            : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Comet {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random();
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.9)'
+            : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength*0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength*0.5 + this.tailWidth*0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,1)'
+            : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    const constellationPoints = [
+        {x: 0.2 * width, y: 0.2 * height},
+        {x: 0.4 * width, y: 0.25 * height},
+        {x: 0.6 * width, y: 0.15 * height},
+        {x: 0.75 * width, y: 0.35 * height},
+        {x: 0.85 * width, y: 0.2 * height},
+        {x: 0.3 * width, y: 0.7 * height},
+        {x: 0.5 * width, y: 0.8 * height},
+        {x: 0.7 * width, y: 0.75 * height},
+        {x: 0.9 * width, y: 0.85 * height},
+    ];
+    const constellationLines = [
+        [0, 1], [1, 2], [2, 4],
+        [0, 3], [3, 4],
+        [5, 6], [6, 7], [7, 8]
+    ];
+
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i=0; i<TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i=0; i<TOTAL_COMETS; i++) comets.push(new Comet());
+
+let constellationOffset = {x: 0, y: 0};
+let direction = 1;
+
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+    stars.forEach(star => { star.update(); star.draw(); });
+    comets.forEach(comet => { comet.update(); comet.draw(); });
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction = -direction;
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        circle.style.opacity = (0.7 + 0.3 * Math.sin(Date.now() / 1000 + i)).toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        pline.style.opacity = (0.5 + 0.4 * Math.sin(Date.now() / 1500 + i)).toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if(theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    const mainWrapper = document.querySelector('.main-wrapper');
+    if(mainWrapper) {
+        mainWrapper.style.borderRadius = borderRadius;
+        mainWrapper.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+    }
+
+    resize();
+    createConstellation();
+    animate();
+
+    document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+        if(document.body.classList.contains('dark-theme')) {
+            localStorage.setItem('theme', 'light');
+        } else {
+            localStorage.setItem('theme', 'dark');
+        }
+        document.body.classList.toggle('dark-theme');
+        applyThemeSettings();
+    });
+
+    function applyThemeSettings() {
+        const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+        const borderRadius = localStorage.getItem('borderRadius') || '10px';
+        const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+        document.documentElement.style.setProperty('--color-accent', accentColor);
+        document.documentElement.style.setProperty('--border-radius', borderRadius);
+        document.documentElement.style.setProperty('--font-family', fontFamily);
+
+        if(mainWrapper) {
+            mainWrapper.style.borderRadius = borderRadius;
+            mainWrapper.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+        }
+        createConstellation();
+        stars.forEach(star => star.reset());
+        comets.forEach(comet => comet.reset());
+    }
+});
+
+function rgbToHex(rgb) {
+    if(rgb.startsWith('#')) return rgb;
+    const result = rgb.match(/\d+/g);
+    if(!result) return rgb;
+    return "#" + result.slice(0,3).map(x => {
+        const hex = parseInt(x).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    }).join('');
+}
+
+</script>
+
+</body>
+</html>

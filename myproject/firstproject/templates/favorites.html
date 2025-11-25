@@ -1,274 +1,284 @@
 {% load static %}
 {% block content %}
-<h1>Избранное</h1>
-<a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную страницу">← Вернуться на главную</a>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Избранное</title>
 
-{% if favorites %}
-<div class="favorites-grid">
-  {% for fav in favorites %}
-  <div class="fav-card">
-    {% with fav.book.get_image_list|first as image %}
-      {% if image %}
-        <a href="{% url 'clients_book_detail' fav.book.id %}">
-          <img src="{{ image }}" alt="{{ fav.book.title }}" class="fav-image">
-        </a>
-      {% else %}
-        <a href="{% url 'clients_book_detail' fav.book.id %}">
-          <div class="fav-no-image">Нет изображения</div>
-        </a>
-      {% endif %}
-    {% endwith %}
-    <div class="fav-info">
-      <a href="{% url 'clients_book_detail' fav.book.id %}" class="fav-title">{{ fav.book.title }}</a>
-      <p class="fav-author">Автор: {{ fav.book.author }}</p>
-      <p class="fav-price">
-        {% if fav.book.original_price and fav.book.price < fav.book.original_price %}
-          <span class="old-price">{{ fav.book.original_price|floatformat:2 }} ₽</span>
-          <span class="new-price">{{ fav.book.price|floatformat:2 }} ₽</span>
-        {% else %}
-          <span>{{ fav.book.price|floatformat:2 }} ₽</span>
-        {% endif %}
-      </p>
-      <p>Доставка: {{ fav.book.delivery_days }} дней</p>
-      <p>На складе: {{ fav.book.stock_quantity }}</p>
-      <p>Рейтинг: ({{ fav.book.rating|floatformat:1 }})</p>
-      <form method="post" class="remove-fav-form">
-        {% csrf_token %}
-        <input type="hidden" name="fav_id" value="{{ fav.id }}">
-        <button type="submit" name="action" value="remove" class="btn-remove" title="Удалить из избранного">Удалить</button>
-      </form>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% else %}
-<p class="empty-message">У вас нет добавленных в избранное товаров.</p>
-{% endif %}
+<!-- Подключение шрифтов Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap&subset=cyrillic" rel="stylesheet" />
 
 <style>
 :root {
-  --color-bg-light: #f9f9f9;
-  --color-text-light: #222222;
-  --color-accent: #0066cc;
-  --color-error: #e74c3c;
-  --color-bg-dark: #1e1e2f;
-  --color-text-dark: #eaeaea;
-  --color-button-bg: var(--color-accent);
-  --color-button-text: #ffffff;
-  --border-radius: 8px;
-  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --color-accent: #0066cc;
+    --color-bg-light: #e6f0ff;
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+
+    --font-family: 'Cinzel Decorative', serif;
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
 }
-body {
-  background: var(--color-bg-light);
-  font-family: var(--font-family);
-  color: var(--color-text-light);
-  margin: 0;
-  padding: 20px 20px 40px;
-  transition: background-color 0.4s, color 0.4s;
-}
+
+/* Темы */
 body.dark-theme {
-  background: var(--color-bg-dark);
-  color: var(--color-text-dark);
+    --color-bg: var(--color-bg-dark);
+    --color-text: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
 }
-h1 {
-  text-align: center;
-  margin-bottom: 24px;
-  font-weight: 700;
-  color: var(--color-accent);
-  transition: color 0.4s;
+body:not(.dark-theme) {
+    --color-bg: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-text: var(--color-text-light);
+    --btn-shadow: 0 5px 15px rgba(0,102,255,0.4);
+    --card-shadow: var(--card-shadow-light);
 }
-body.dark-theme h1 {
-  color: #80b4ff;
+
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
-a.btn-back-to-main {
-  display: inline-block;
-  color: var(--color-accent);
-  font-weight: 700;
-  border: 2px solid var(--color-accent);
-  padding: 8px 16px;
-  border-radius: var(--border-radius);
-  text-decoration: none;
-  margin-bottom: 24px;
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+
+/* Canvas and SVG for cosmic background */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
 }
-a.btn-back-to-main:hover, a.btn-back-to-main:focus {
-  background-color: var(--color-accent);
-  color: var(--color-button-text);
-  outline: none;
+
+/* Main wrapper */
+.main-wrapper {
+    width: 100%;
+    max-width: 1080px;
+    border-radius: var(--border-radius);
+    padding: 10px;
+    position: relative;
+    margin-bottom: 30px;
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    background: rgba(255 255 255 / 0.85);
+    z-index: 10;
+    transition: box-shadow 0.4s, border-radius 0.4s, background 0.4s;
 }
-body.dark-theme a.btn-back-to-main {
-  color: #80b4ff;
-  border-color: #80b4ff;
+body.dark-theme .main-wrapper {
+    background: rgba(30 30 47 / 0.85);
 }
-body.dark-theme a.btn-back-to-main:hover, body.dark-theme a.btn-back-to-main:focus {
-  background-color: #004d99;
-  color: #fff;
-}
+
+/* Favorites grid and cards */
 .favorites-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 28px;
-  max-width: 1080px;
-  margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
 }
 .fav-card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: box-shadow 0.3s ease, transform 0.2s ease, background-color 0.4s, color 0.4s;
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.2s ease, background-color 0.4s, color 0.4s;
+    color: var(--color-text);
 }
 body.dark-theme .fav-card {
-  background: #2a2a40;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  color: var(--color-text-dark);
+    background: #2a2a40;
+    box-shadow: var(--card-shadow);
+    color: var(--color-text-dark);
 }
 .fav-card:hover {
-  box-shadow: 0 14px 38px rgba(0,0,0,0.15);
-  transform: translateY(-6px);
+    box-shadow: 0 14px 38px rgba(0,0,0,0.15);
+    transform: translateY(-6px);
 }
 .fav-image {
-  width: 100%;
-  height: 240px;
-  object-fit: contain;
-  background-color: #fafafa;
-  transition: transform 0.3s ease, background-color 0.4s;
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    background-color: #fafafa;
+    transition: transform 0.3s ease, background-color 0.4s;
 }
 body.dark-theme .fav-image {
-  background-color: #3a3a57;
+    background-color: #3a3a57;
 }
 .fav-card:hover .fav-image {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 .fav-no-image {
-  width: 100%;
-  height: 240px;
-  background: #f0f0f0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #bbb;
-  font-style: italic;
-  font-size: 1rem;
-  transition: background-color 0.4s, color 0.4s;
+    width: 100%;
+    height: 240px;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #bbb;
+    font-style: italic;
+    font-size: 1rem;
+    transition: background-color 0.4s, color 0.4s;
 }
 body.dark-theme .fav-no-image {
-  background: #555;
-  color: #bbb;
+    background: #555;
+    color: #bbb;
 }
 .fav-info {
-  padding: 20px;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 .fav-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1a2732;
-  margin-bottom: 8px;
-  text-decoration: none;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.3;
-  transition: color 0.3s;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a2732;
+    margin-bottom: 8px;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+    transition: color 0.3s;
 }
 body.dark-theme .fav-title {
-  color: #adc6ff;
+    color: #adc6ff;
 }
 .fav-title:hover {
-  color: #0d1a28;
-  text-decoration: underline;
+    color: #0d1a28;
+    text-decoration: underline;
 }
 body.dark-theme .fav-title:hover {
-  color: #80b4ff;
+    color: #80b4ff;
 }
 .fav-author {
-  font-size: 0.95rem;
-  color: #586069;
-  margin-bottom: 12px;
-  min-height: 44px;
-  line-height: 1.3;
-  transition: color 0.3s;
+    font-size: 0.95rem;
+    color: #586069;
+    margin-bottom: 12px;
+    min-height: 44px;
+    line-height: 1.3;
+    transition: color 0.3s;
 }
 body.dark-theme .fav-author {
-  color: #a0acb4;
+    color: #a0acb4;
 }
 .fav-price {
-  font-weight: 700;
-  font-size: 1.14rem;
-  color: #27ae60;
-  margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 1.14rem;
+    color: #27ae60;
+    margin-bottom: 10px;
 }
 .old-price {
-  color: #999;
-  text-decoration: line-through;
-  margin-right: 10px;
-  font-weight: 500;
+    color: #999;
+    text-decoration: line-through;
+    margin-right: 10px;
+    font-weight: 500;
 }
 .new-price {
-  color: #d32f2f;
+    color: #d32f2f;
 }
 p {
-  margin: 4px 0 8px 0;
-  font-size: 0.9rem;
-  color: #495057;
-  transition: color 0.3s;
+    margin: 4px 0 8px 0;
+    font-size: 0.9rem;
+    color: #495057;
+    transition: color 0.3s;
 }
 body.dark-theme p {
-  color: #c0c5cc;
+    color: #c0c5cc;
 }
 .remove-fav-form {
-  margin-top: auto;
-  width: 100%;
+    margin-top: auto;
+    width: 100%;
 }
 .btn-remove {
-  background-color: #d32f2f;
-  border: none;
-  border-radius: var(--border-radius);
-  color: var(--color-button-text);
-  padding: 10px 16px;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-  box-shadow: 0 3px 9px rgba(211,47,47,0.7);
-  transition: background-color 0.25s ease-in-out;
+    background-color: #d32f2f;
+    border: none;
+    border-radius: var(--border-radius);
+    color: #fff;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 3px 9px rgba(211,47,47,0.7);
+    transition: background-color 0.25s ease-in-out;
 }
 .btn-remove:hover {
-  background-color: #a82323;
+    background-color: #a82323;
 }
 .empty-message {
-  font-style: italic;
-  color: #777;
-  margin-top: 60px;
-  font-size: 1.3rem;
-  text-align: center;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-  transition: color 0.4s;
+    font-style: italic;
+    color: #777;
+    margin-top: 60px;
+    font-size: 1.3rem;
+    text-align: center;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: color 0.4s;
 }
 body.dark-theme .empty-message {
-  color: #bbb;
+    color: #bbb;
 }
-/* Кнопка переключения темы */
+
+/* Back button */
+a.btn-back-to-main {
+    display: inline-block;
+    color: var(--color-accent);
+    font-weight: 700;
+    border: 2px solid var(--color-accent);
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+a.btn-back-to-main:hover, a.btn-back-to-main:focus {
+    background-color: var(--color-accent);
+    color: #fff;
+    outline: none;
+}
+body.dark-theme a.btn-back-to-main {
+    color: #80b4ff;
+    border-color: #80b4ff;
+}
+body.dark-theme a.btn-back-to-main:hover, body.dark-theme a.btn-back-to-main:focus {
+    background-color: #004d99;
+    color: #fff;
+}
+
+/* Theme toggle button */
 .theme-toggle {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: var(--color-button-bg);
+  background: var(--color-accent);
   border: none;
-  color: var(--color-button-text);
+  color: #fff;
   padding: 10px 14px;
   border-radius: 30px;
   cursor: pointer;
   font-weight: 700;
   font-size: 0.9rem;
-  box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+  box-shadow: var(--btn-shadow);
   transition: background-color 0.3s;
   z-index: 1000;
 }
@@ -277,21 +287,333 @@ body.dark-theme .empty-message {
 }
 </style>
 
-<script>
-  window.onload = function() {
-    if(localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark-theme');
-    }
-  };
-  function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    if(document.body.classList.contains('dark-theme')) {
-      localStorage.setItem('theme', 'dark');
-    } else {
-      localStorage.setItem('theme', 'light');
-    }
-  }
-</script>
+</head>
+<body>
 
-<button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+<header>
+    <h1>Избранное</h1>
+    <a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную страницу">← Вернуться на главную</a>
+</header>
+
+<!-- Cosmic background canvas and SVG -->
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<div class="main-wrapper" role="main" aria-label="Избранное">
+    {% if favorites %}
+    <div class="favorites-grid">
+      {% for fav in favorites %}
+      <div class="fav-card">
+        {% with fav.book.get_image_list|first as image %}
+          {% if image %}
+            <a href="{% url 'clients_book_detail' fav.book.id %}">
+              <img src="{{ image }}" alt="{{ fav.book.title }}" class="fav-image">
+            </a>
+          {% else %}
+            <a href="{% url 'clients_book_detail' fav.book.id %}">
+              <div class="fav-no-image">Нет изображения</div>
+            </a>
+          {% endif %}
+        {% endwith %}
+        <div class="fav-info">
+          <a href="{% url 'clients_book_detail' fav.book.id %}" class="fav-title">{{ fav.book.title }}</a>
+          <p class="fav-author">Автор: {{ fav.book.author }}</p>
+          <p class="fav-price">
+            {% if fav.book.original_price and fav.book.price < fav.book.original_price %}
+              <span class="old-price">{{ fav.book.original_price|floatformat:2 }} ₽</span>
+              <span class="new-price">{{ fav.book.price|floatformat:2 }} ₽</span>
+            {% else %}
+              <span>{{ fav.book.price|floatformat:2 }} ₽</span>
+            {% endif %}
+          </p>
+          <p>Доставка: {{ fav.book.delivery_days }} дней</p>
+          <p>На складе: {{ fav.book.stock_quantity }}</p>
+          <p>Рейтинг: ({{ fav.book.rating|floatformat:1 }})</p>
+          <form method="post" class="remove-fav-form">
+            {% csrf_token %}
+            <input type="hidden" name="fav_id" value="{{ fav.id }}">
+            <button type="submit" name="action" value="remove" class="btn-remove" title="Удалить из избранного">Удалить</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-message">У вас нет добавленных в избранное товаров.</p>
+    {% endif %}
+</div>
+
+<button class="theme-toggle" type="button" aria-pressed="false" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
+
+<script>
+// Canvas setup
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+
+// Theme detection
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+// Star class
+class Star {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.7)'
+            : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+
+// Comet class
+class Comet {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random() * 1;
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.9)'
+            : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength*0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength*0.5 + this.tailWidth*0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,1)'
+            : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
+
+
+// Constellation points and lines
+let constellationPoints = [];
+let constellationLines = [];
+
+function updateConstellationPoints() {
+    constellationPoints = [
+        {x: 0.2 * width, y: 0.2 * height},
+        {x: 0.4 * width, y: 0.25 * height},
+        {x: 0.6 * width, y: 0.15 * height},
+        {x: 0.75 * width, y: 0.35 * height},
+        {x: 0.85 * width, y: 0.2 * height},
+        {x: 0.3 * width, y: 0.7 * height},
+        {x: 0.5 * width, y: 0.8 * height},
+        {x: 0.7 * width, y: 0.75 * height},
+        {x: 0.9 * width, y: 0.85 * height},
+    ];
+    constellationLines = [
+        [0, 1], [1, 2], [2, 4],
+        [0, 3], [3, 4],
+        [5, 6], [6, 7], [7, 8]
+    ];
+}
+updateConstellationPoints();
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    updateConstellationPoints();
+
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = {x: 0, y: 0};
+let direction = 1;
+
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    stars.forEach(star => {
+        star.update();
+        star.draw();
+    });
+
+    comets.forEach(comet => {
+        comet.update();
+        comet.draw();
+    });
+
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction *= -1;
+
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+
+    // Flicker constellation stars and lines
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+// Theme and preferences management
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if(theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    const mainWrapper = document.querySelector('.main-wrapper');
+    if(mainWrapper) {
+        mainWrapper.style.borderRadius = borderRadius;
+        mainWrapper.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+    }
+
+    createConstellation();
+
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+    document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
+});
+</script>
+</body>
+</html>
 {% endblock %}

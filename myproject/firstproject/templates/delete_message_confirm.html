@@ -1,0 +1,113 @@
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
+    color: #2c3e50;
+    margin: 0 20px 40px;
+  }
+
+  h2 {
+    text-align: center;
+    margin: 40px 0 20px;
+    font-weight: 700;
+    color: #212529;
+  }
+
+  p.confirmation-text {
+    max-width: 520px;
+    margin: 0 auto 20px;
+    font-size: 1.1rem;
+    text-align: center;
+    color: #495057;
+  }
+
+  .message-preview {
+    max-width: 600px;
+    margin: 0 auto 30px;
+    padding: 15px 20px;
+    border: 1.5px solid #dee2e6;
+    border-radius: 12px;
+    background-color: #ffffff;
+    font-size: 1rem;
+    color: #343a40;
+    white-space: pre-wrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  form.delete-form {
+    max-width: 360px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  form.delete-form button,
+  form.delete-form a {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none;
+    user-select: none;
+    border: none;
+  }
+
+  form.delete-form button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+  }
+
+  form.delete-form button:hover {
+    background-color: #b02a37;
+  }
+
+  form.delete-form a {
+    background-color: #e9ecef;
+    color: #495057;
+    line-height: 1;
+    display: inline-block;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  form.delete-form a:hover {
+    background-color: #ced4da;
+    color: #343a40;
+  }
+</style>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+      const accent = localStorage.getItem('accentColor') || '#0066cc';
+      const theme = localStorage.getItem('theme') || 'light';
+      const borderRadius = localStorage.getItem('borderRadius') || '10px';
+      const fontFamily = localStorage.getItem('fontFamily') || "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+      document.documentElement.style.setProperty('--color-accent', accent);
+      document.documentElement.style.setProperty('--border-radius', borderRadius);
+      document.documentElement.style.setProperty('--font-family', fontFamily);
+
+      if(theme === 'dark') {
+          document.body.classList.add('dark-theme');
+      } else {
+          document.body.classList.remove('dark-theme');
+      }
+  });
+</script>
+
+<h2>Удаление сообщения</h2>
+<p class="confirmation-text">Вы уверены, что хотите удалить своё сообщение?</p>
+<div class="message-preview">{{ message.text|linebreaks }}</div>
+
+<form method="post" class="delete-form" aria-label="Форма подтверждения удаления сообщения">
+  {% csrf_token %}
+  <button type="submit" aria-label="Подтвердить удаление сообщения">Удалить сообщение</button>
+  <a href="{% if user.profile.role == 'client' %}{% url 'client_support_chat' %}{% else %}{% url 'manager_chat_detail' message.chat.id %}{% endif %}" aria-label="Отмена удаления сообщения">Отмена</a>
+</form>
+{% endblock %}

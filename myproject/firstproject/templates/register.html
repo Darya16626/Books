@@ -1,297 +1,535 @@
 {% load static %}
+{% block content %}
 
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Регистрация - BookHaven</title>
-    
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    
-    <style>
-        :root {
-            --color-bg-light: #f9f9f9;
-            --color-text-light: #222222;
-            --color-accent: #0066cc;
-            --color-error: #e74c3c;
-            --color-bg-dark: #1e1e2f;
-            --color-text-dark: #eaeaea;
-            --color-button-bg: var(--color-accent);
-            --color-button-text: #ffffff;
-            --border-radius: 8px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            margin: 0; padding: 0;
-            background: var(--color-bg-light);
-            color: var(--color-text-light);
-            font-family: var(--font-family);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            transition: background-color 0.4s, color 0.4s;
-        }
-        body.dark-theme {
-            background: var(--color-bg-dark);
-            color: var(--color-text-dark);
-        }
-        .container {
-            background: #fff;
-            padding: 40px 60px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border-radius: var(--border-radius);
-            max-width: 420px;
-            width: 100%;
-            transition: background-color 0.4s, color 0.4s;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        body.dark-theme .container {
-            background: #2a2a40;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        h2 {
-            margin-bottom: 10px;
-            font-weight: 700;
-            font-size: 2rem;
-            letter-spacing: 1px;
-            text-align: center;
-            color: var(--color-accent);
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            color: inherit;
-            margin-bottom: 6px;
-        }
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 6px;
-            border: 2px solid #ccc;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-            background: #fafafa;
-            color: #222;
-        }
-        body.dark-theme input {
-            background: #3a3a57;
-            color: var(--color-text-dark);
-            border-color: #555;
-        }
-        input:focus {
-            border-color: var(--color-accent);
-            outline: none;
-        }
-        .errorlist {
-            color: var(--color-error);
-            margin: 4px 0 10px 0;
-            font-size: 0.85rem;
-        }
-        /* Обёртка для полей с лейблами и инпутами */
-        .form-field {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 12px;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Регистрация - BookHaven</title>
 
-        /* Кнопка регитсрации и ссылка на вход в одну строку, кнопка шире */
-        .form-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 12px;
-        }
-        button[type="submit"] {
-            flex-grow: 1;
-            padding: 14px 0;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--color-button-bg);
-            color: var(--color-button-text);
-            font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,102,204,0.4);
-            transition: background-color 0.3s;
-            margin-right: 20px;
-        }
-        button[type="submit"]:hover {
-            background-color: #004d99;
-        }
-        .login-link {
-            font-weight: 600;
-            color: var(--color-accent);
-            text-decoration: none;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .login-link:hover {
-            color: #003366;
-        }
-        p.bottom-text {
-            text-align: center;
-            margin-top: 24px;
-            color: inherit;
-            font-size: 0.9rem;
-        }
-        /* Кнопка переключения темы */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--color-accent);
-            border: none;
-            color: var(--color-button-text);
-            padding: 10px 14px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
-            transition: background-color 0.3s;
-            z-index: 1000;
-        }
-        .theme-toggle:hover {
-            background-color: #004d99;
-        }
-    </style>
-    
-    <script>
-        // Телефонная маска
-        function formatPhone(input) {
-            let val = input.value.replace(/\D/g, '');
-            if(!val.startsWith('7')) val = '7' + val;
-            let formatted = '+7 ';
-            if(val.length > 1) formatted += '(' + val.substring(1,4);
-            if(val.length >= 4) formatted += ') ' + val.substring(4,7);
-            if(val.length >= 7) formatted += '-' + val.substring(7,9);
-            if(val.length >= 9) formatted += '-' + val.substring(9,11);
-            input.value = formatted;
-        }
-        window.onload = function() {
-            const phoneInput = document.querySelector('input[name="phone"]');
-            if(phoneInput && !phoneInput.value) phoneInput.value = '+7 ';
-            
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
-        };
+<!-- Google Fonts с поддержкой кириллицы -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
 
-        // Переключение тем
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            if(document.body.classList.contains('dark-theme')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        }
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+    --font-family: 'Cinzel Decorative', serif;
 
-        // Валидация формы
-        function validateForm(event) {
-            const form = event.target;
-            const nameRegex = /^[А-ЯЁа-яё\s\-]+$/;
-            let valid = true;
-            let messages = [];
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow-light: 0 5px 15px rgba(0, 102, 255, 0.4);
+    --btn-shadow-dark: 0 5px 15px rgba(0, 66, 134, 0.7);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
 
-            ['last_name', 'first_name', 'middle_name'].forEach(function(field){
-                const input = form.querySelector(`[name="${field}"]`);
-                if(input && input.value.trim() !== '') {
-                    if(!nameRegex.test(input.value.trim())) {
-                        valid = false;
-                        messages.push(`Поле "${input.previousElementSibling.innerText.replace(":", "")}" должно содержать только русские буквы, пробелы или дефисы.`);
-                    }
-                }
-            });
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg-light);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text-light);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
 
-            const phone = form.querySelector('[name="phone"]').value.trim();
-            const phoneRegex = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
-            if(!phoneRegex.test(phone)) {
-                valid = false;
-                messages.push('Телефон должен быть в формате +7 (XXX) XXX-XX-XX');
-            }
+body.dark-theme {
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+}
 
-            const password1 = form.querySelector('[name="password1"]').value;
-            const password2 = form.querySelector('[name="password2"]').value;
-            const passRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};:\'"\\|,.<>\/?]).{8,}$/;
+/* Canvas и SVG для космического фона */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
 
-            if(!passRegex.test(password1)) {
-                valid = false;
-                messages.push('Пароль должен содержать минимум 8 символов, включая буквы, цифры и специальные символы.');
-            }
-            if(password1 !== password2) {
-                valid = false;
-                messages.push('Пароли не совпадают.');
-            }
+/* Контейнер регистрации */
+.container {
+    background: rgba(255 255 255 / 0.85);
+    padding: 40px 60px;
+    box-shadow: var(--card-shadow-light);
+    border-radius: var(--border-radius);
+    max-width: 420px;
+    width: 100%;
+    transition: background-color 0.4s, color 0.4s, box-shadow 0.4s;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    z-index: 10;
+}
+body.dark-theme .container {
+    background: rgba(30 30 47 / 0.85);
+    box-shadow: var(--card-shadow-dark);
+    color: var(--color-text-dark);
+}
 
-            if(!valid) {
-                alert(messages.join('\n'));
-                event.preventDefault();
-            }
-        }
-    </script>
+h2 {
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 1px;
+    text-align: center;
+    font-family: var(--font-family);
+    color: var(--color-accent);
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    color: inherit;
+    margin-bottom: 6px;
+    user-select: none;
+}
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 6px;
+    border: 2px solid var(--color-accent);
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    background: transparent;
+    color: inherit;
+}
+
+body.dark-theme input {
+    background: #3a3a57;
+    color: var(--color-text-dark);
+    border-color: #555;
+}
+
+input:focus {
+    border-color: #004a99;
+    outline: none;
+}
+
+.errorlist {
+    color: #e74c3c;
+    margin: 4px 0 10px 0;
+    font-size: 0.85rem;
+}
+
+/* Обертка для полей */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+/* Кнопка регистрации и ссылка на вход */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+button[type="submit"] {
+    flex-grow: 1;
+    padding: 14px 0;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--color-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: var(--btn-shadow-light);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    font-family: var(--font-family);
+}
+body.dark-theme button[type="submit"] {
+    box-shadow: var(--btn-shadow-dark);
+}
+button[type="submit"]:hover {
+    background-color: #004d99;
+}
+
+.login-link {
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--font-family);
+}
+.login-link:hover {
+    color: #003366;
+}
+
+p.bottom-text {
+    text-align: center;
+    margin-top: 24px;
+    color: inherit;
+    font-size: 0.9rem;
+    font-family: var(--font-family);
+}
+
+/* Кнопка переключения темы */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--color-accent);
+    border: none;
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: var(--btn-shadow-light);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    z-index: 1000;
+    font-family: var(--font-family);
+}
+body.dark-theme .theme-toggle {
+    box-shadow: var(--btn-shadow-dark);
+}
+.theme-toggle:hover {
+    background-color: #004d99;
+}
+
+/* Медиазапрос - брейкпоинт для мобильных устройств (до 480px) */
+@media (max-width: 480px) {
+    body {
+        margin: 20px 10px;
+    }
+    .container {
+        padding: 25px 20px;
+        max-width: 320px;
+        box-shadow: 0 8px 24px rgba(0, 102, 255, 0.3);
+    }
+    h2 {
+        font-size: 1.5rem;
+    }
+    input {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    button[type="submit"] {
+        padding: 12px 0;
+        font-size: 1rem;
+    }
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .login-link {
+        white-space: normal;
+        text-align: center;
+        flex-shrink: initial;
+    }
+    p.bottom-text {
+        font-size: 0.85rem;
+        margin-top: 18px;
+    }
+}
+
+</style>
 </head>
-
 <body>
-    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+<button class="theme-toggle" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
 
-    <div class="container">
-        <h2>Регистрация в BookHaven</h2>
-        <form method="post" novalidate onsubmit="validateForm(event)">
-            {% csrf_token %}
-            {{ form.non_field_errors }}
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" aria-hidden="true" focusable="false"></svg>
 
-            <div class="form-field">
-                <label for="{{ form.email.id_for_label }}">Email (логин):</label>
-                {{ form.email.errors }}
-                {{ form.email }}
-            </div>
+<div class="container" role="main" aria-label="Форма регистрации">
 
-            <div class="form-field">
-                <label for="{{ form.last_name.id_for_label }}">Фамилия:</label>
-                {{ form.last_name.errors }}
-                {{ form.last_name }}
-            </div>
+<h2>Регистрация в BookHaven</h2>
 
-            <div class="form-field">
-                <label for="{{ form.first_name.id_for_label }}">Имя:</label>
-                {{ form.first_name.errors }}
-                {{ form.first_name }}
-            </div>
+<form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
 
-            <div class="form-field">
-                <label for="{{ form.middle_name.id_for_label }}">Отчество:</label>
-                {{ form.middle_name.errors }}
-                {{ form.middle_name }}
-            </div>
-
-            <div class="form-field">
-                <label for="{{ form.phone.id_for_label }}">Телефон:</label>
-                {{ form.phone.errors }}
-                {{ form.phone }}
-            </div>
-
-            <div class="form-field">
-                <label for="{{ form.password1.id_for_label }}">Пароль:</label>
-                {{ form.password1.errors }}
-                {{ form.password1 }}
-            </div>
-
-            <div class="form-field">
-                <label for="{{ form.password2.id_for_label }}">Повторите пароль:</label>
-                {{ form.password2.errors }}
-                {{ form.password2 }}
-            </div>
-
-            <div class="form-actions">
-                <button type="submit">Зарегистрироваться</button>
-                <a class="login-link" href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
-            </div>
-        </form>
+    <div class="form-field">
+        <label for="{{ form.email.id_for_label }}">Email (логин):</label>
+        {{ form.email.errors }}
+        {{ form.email }}
     </div>
+
+    <div class="form-field">
+        <label for="{{ form.last_name.id_for_label }}">Фамилия:</label>
+        {{ form.last_name.errors }}
+        {{ form.last_name }}
+    </div>
+
+    <div class="form-field">
+        <label for="{{ form.first_name.id_for_label }}">Имя:</label>
+        {{ form.first_name.errors }}
+        {{ form.first_name }}
+    </div>
+
+    <div class="form-field">
+        <label for="{{ form.middle_name.id_for_label }}">Отчество:</label>
+        {{ form.middle_name.errors }}
+        {{ form.middle_name }}
+    </div>
+
+    <div class="form-field">
+        <label for="{{ form.phone.id_for_label }}">Телефон:</label>
+        {{ form.phone.errors }}
+        {{ form.phone }}
+    </div>
+
+    <div class="form-field">
+        <label for="{{ form.backup_word.id_for_label }}">Резервное слово:</label>
+        {{ form.backup_word.errors }}
+        {{ form.backup_word }}
+    </div>
+
+    <div class="form-field">
+        <label for="{{ form.password1.id_for_label }}">Пароль:</label>
+        {{ form.password1.errors }}
+        {{ form.password1 }}
+    </div>
+
+    <div class="form-field">
+        <label for="{{ form.password2.id_for_label }}">Повторите пароль:</label>
+        {{ form.password2.errors }}
+        {{ form.password2 }}
+    </div>
+
+    <div class="form-actions">
+        <button type="submit">Зарегистрироваться</button>
+        <a href="{% url 'login' %}" class="login-link">Уже есть аккаунт? Войти</a>
+    </div>
+</form>
+
+<p class="bottom-text">Регистрация в BookHaven — новый стиль и космос под любым светом</p>
+
+</div>
+
+<script>
+// Canvas setup and animation same as admin page with stars, comets, constellations
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => { resize(); createConstellation(); });
+
+class Star {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(30,115,255,${this.alpha*0.9})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,0.7)' : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Comet {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random() * 1;
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength * 0.5);
+        gradient.addColorStop(0, isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,0.9)' : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength * 0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength * 0.5 + this.tailWidth * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,1)' : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for (let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for (let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
+
+const constellationPoints = [
+    { x: 0.2 * width, y: 0.2 * height },
+    { x: 0.4 * width, y: 0.25 * height },
+    { x: 0.6 * width, y: 0.15 * height },
+    { x: 0.75 * width, y: 0.35 * height },
+    { x: 0.85 * width, y: 0.2 * height },
+
+    { x: 0.3 * width, y: 0.7 * height },
+    { x: 0.5 * width, y: 0.8 * height },
+    { x: 0.7 * width, y: 0.75 * height },
+    { x: 0.9 * width, y: 0.85 * height },
+];
+
+const constellationLines = [
+    [0, 1], [1, 2], [2, 4],
+    [0, 3], [3, 4],
+    [5, 6], [6, 7], [7, 8]
+];
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(circle);
+    });
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = { x: 0, y: 0 };
+let direction = 1;
+
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+    stars.forEach(star => { star.update(); star.draw(); });
+    comets.forEach(comet => { comet.update(); comet.draw(); });
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction *= -1;
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        circle.style.opacity = (0.7 + 0.3 * Math.sin(Date.now() / 1000 + i)).toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        pline.style.opacity = (0.5 + 0.4 * Math.sin(Date.now() / 1500 + i)).toFixed(2);
+    });
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => { createConstellation(); });
+
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+    document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
+});
+</script>
+
 </body>
 </html>
+
+{% endblock %}

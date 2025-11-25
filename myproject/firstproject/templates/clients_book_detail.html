@@ -394,6 +394,24 @@
         }
     </style>
     <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const accent = localStorage.getItem('accentColor') || '#0066cc';
+            const theme = localStorage.getItem('theme') || 'light';
+            const borderRadius = localStorage.getItem('borderRadius') || '10px';
+            const fontFamily = localStorage.getItem('fontFamily') || "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    
+            document.documentElement.style.setProperty('--color-accent', accent);
+            document.documentElement.style.setProperty('--border-radius', borderRadius);
+            document.documentElement.style.setProperty('--font-family', fontFamily);
+    
+            if(theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        });
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const mainImage = document.getElementById('main-image');
             const thumbnails = document.querySelectorAll('.thumbnail');
@@ -432,22 +450,24 @@
 <body>
     <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
 
-<header>
-    <h1>{{ book.title }}</h1>
-    <p>Автор: {{ book.author }}</p>
-    <p>Жанр: {{ book.genre }}</p>
-    <p class="price" aria-label="Цена книги">
-        {% if book.original_price and book.price != book.original_price %}
-            <del>{{ book.original_price|floatformat:2 }} ₽</del>
-        {% endif %}
-        <strong>{{ book.price|floatformat:2 }} ₽</strong>
-    </p>
-    <p class="rating" aria-label="Рейтинг книги {{ book.rating|floatformat:1 }} звезд">
-        <span class="star-icon" aria-hidden="true">★</span>
-        <span class="rating-number" aria-label="Цифровой рейтинг">{{ book.rating|floatformat:1 }}</span>
-    </p>
-    <a href="javascript:history.back()" class="catalog-back">← Назад</a>
-</header>
+    <header>
+        <h1>{{ book.title }}</h1>
+        <p>Автор: {{ book.author }}</p>
+        <p>Жанр: {{ book.genre }}</p>
+        <p>Год создания книги: {{ book.year_created|default:"не указан" }}</p>
+        <p>Язык книги: {{ book.language|default:"не указан" }}</p>
+        <p class="price" aria-label="Цена книги">
+            {% if book.original_price and book.price != book.original_price %}
+                <del>{{ book.original_price|floatformat:2 }} ₽</del>
+            {% endif %}
+            <strong>{{ book.price|floatformat:2 }} ₽</strong>
+        </p>
+        <p class="rating" aria-label="Рейтинг книги {{ book.rating|floatformat:1 }} звезд">
+            <span class="star-icon" aria-hidden="true">★</span>
+            <span class="rating-number" aria-label="Цифровой рейтинг">{{ book.rating|floatformat:1 }}</span>
+        </p>
+        <a href="{% url 'client_book_catalog' %}" class="catalog-back">← Назад к каталогу</a>
+    </header>
 
 <!-- Галерея изображений -->
 <div class="images-container" role="list" aria-label="Изображения книги">
@@ -483,12 +503,18 @@
 
             <dt>ISBN:</dt>
             <dd>{{ book.isbn }}</dd>
+
+            <dt>Год создания книги:</dt>
+            <dd>{{ book.year_created|default:"не указан" }}</dd>
+
+            <dt>Язык книги:</dt>
+            <dd>{{ book.language|default:"не указан" }}</dd>
         </dl>
     </section>
 
     <section aria-labelledby="reviews-section">
         <h2 id="reviews-section">Отзывы</h2>
-
+    
         <!-- Форма добавления комментария -->
         <form method="post" aria-label="Оставить отзыв о книге" novalidate class="comment-form">
             {% csrf_token %}
@@ -500,13 +526,13 @@
                 {% endfor %}
             </div>
             <input type="hidden" id="id_rating" name="rating" value="0" required aria-required="true" />
-
+    
             <label for="id_comment">Комментарий:</label>
             <textarea name="comment" id="id_comment" rows="4" placeholder="Напишите ваш отзыв..." required></textarea>
-
+    
             <button type="submit">Отправить отзыв</button>
         </form>
-
+    
         <!-- Отзывы -->
         {% if reviews %}
             <div role="list" aria-label="Отзывы пользователей">
@@ -524,7 +550,14 @@
                     </p>
                     <p class="comment">{{ review.comment|linebreaksbr }}</p>
                     <p class="date">Дата: {{ review.created_at|date:"d.m.Y H:i" }}</p>
-
+    
+                    {% if review.admin_response %}
+                    <div class="admin-response" style="border-left: 3px solid #0066cc; margin-top: 10px; padding-left: 10px;">
+                        <strong>Ответ администратора:</strong>
+                        <p>{{ review.admin_response|linebreaksbr }}</p>
+                    </div>
+                    {% endif %}
+    
                     <div class="review-actions" aria-label="Действия с отзывом">
                         {% if review.user != user %}
                         <form method="post" style="display:inline;">
@@ -554,7 +587,7 @@
         {% else %}
             <p>Пока нет отзывов. Будьте первым, кто оставит отзыв!</p>
         {% endif %}
-    </section>
+    </section>    
 </main>
 </body>
 </html>

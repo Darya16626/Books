@@ -1,0 +1,674 @@
+{% load static %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Заказы клиентов</title>
+
+<!-- Подключение необычных шрифтов Google Fonts с поддержкой кириллицы -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
+
+<!-- Основной CSS из админки -->
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: #e6f0ff;
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+    --font-family: 'Cinzel Decorative', serif;
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* Тёмная тема */
+body.dark-theme {
+    --color-bg: var(--color-bg-dark);
+    --color-text: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
+}
+/* Светлая тема */
+body:not(.dark-theme) {
+    --color-bg: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-text: var(--color-text-light);
+    --btn-shadow: 0 5px 15px rgba(0,102,255,0.4);
+    --card-shadow: var(--card-shadow-light);
+}
+
+/* Основные стили для body */
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Стили канваса под фон */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+/* Основной контейнер заказов */
+.main-wrapper {
+    width: 100%;
+    max-width: 900px;
+    border-radius: var(--border-radius);
+    padding: 20px 25px;
+    position: relative;
+    margin-bottom: 30px;
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    background: rgba(255 255 255 / 0.95);
+    z-index: 10;
+    transition: box-shadow 0.4s, border-radius 0.4s, background 0.4s;
+}
+body.dark-theme .main-wrapper {
+    background: rgba(30 30 47 / 0.95);
+}
+
+/* Таблица заказов */
+#orders-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 20px;
+    font-size: 0.95rem;
+    box-shadow: var(--card-shadow);
+}
+#orders-table thead tr {
+    background-color: var(--color-accent);
+    color: white;
+    border-radius: var(--border-radius);
+}
+#orders-table thead th {
+    padding: 14px 12px;
+    text-align: center;
+    font-weight: 700;
+    user-select: none;
+    border: none;
+}
+body.dark-theme #orders-table thead tr {
+    background-color: #004d40;
+}
+
+/* Чередующиеся цвета строк */
+#orders-table tbody tr {
+    background: #f9fbff;
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s ease;
+}
+#orders-table tbody tr:nth-child(odd) {
+    background: #e3eefc;
+}
+body.dark-theme #orders-table tbody tr {
+    background: rgba(70, 90, 120, 0.5);
+}
+body.dark-theme #orders-table tbody tr:nth-child(odd) {
+    background: rgba(60, 80, 110, 0.5);
+}
+
+/* Плавный ховер для выделения строки */
+#orders-table tbody tr:hover {
+    background-color: var(--color-accent);
+    color: #fff;
+    cursor: default;
+}
+#orders-table tbody tr:hover a.edit-link,
+#orders-table tbody tr:hover a.delete-link {
+    color: #fff !important;
+    text-shadow: 0 0 3px rgba(0,0,0,0.7);
+}
+
+/* Столбцы */
+#orders-table td {
+    padding: 15px 12px;
+    vertical-align: top;
+    border: none;
+    max-width: 260px;
+    word-break: break-word;
+    text-align: left;
+}
+
+#orders-table td:nth-child(1),
+#orders-table td:nth-child(4),
+#orders-table td:nth-child(5),
+#orders-table td:nth-child(7) {
+    text-align: center;
+}
+
+/* Ссылки редактирования и удаления */
+#orders-table a.edit-link {
+    font-weight: 700;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+#orders-table a.edit-link:hover {
+    color: #004080;
+}
+
+#orders-table a.delete-link {
+    color: #c62828;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+#orders-table a.delete-link:hover {
+    color: #881515;
+}
+
+/* Стили для списка товаров */
+#orders-table td ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    max-height: 120px;
+    overflow-y: auto;
+}
+#orders-table td ul li {
+    margin-bottom: 8px;
+    border-bottom: 1px solid #d0d8e8;
+    padding-bottom: 6px;
+    font-weight: 500;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+body.dark-theme #orders-table td ul li {
+    border-color: #557799;
+    color: #e0eaff;
+}
+#orders-table td ul li strong {
+    font-weight: 700;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#orders-table td ul li span {
+    color: var(--color-accent);
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Кнопки */
+button, a.button-link {
+    font-family: var(--font-family);
+    color: #fff;
+    background-color: var(--color-accent);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: var(--btn-padding);
+    font-size: var(--btn-font-size);
+    box-shadow: var(--btn-shadow);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    user-select: none;
+}
+button:hover, a.button-link:hover {
+    filter: brightness(110%);
+}
+
+/* Заголовок и кнопка переключения темы */
+header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+header h1 {
+    margin: 0;
+    font-family: var(--font-family);
+    font-weight: 900;
+    font-size: 2.2rem;
+    letter-spacing: 1.5px;
+}
+
+/* Поисковое поле */
+#order-search input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1.2rem;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 0 10px var(--color-accent);
+    transition: border-color 0.3s ease;
+    outline: none;
+}
+#order-search input:focus {
+    border-color: #004a99;
+    box-shadow: 0 0 12px #004a99;
+}
+
+/* Подсказка горячих клавиш */
+#hotkey-tooltip {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--color-accent);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    z-index: 1000;
+    font-weight: bold;
+    display: none;
+    user-select: none;
+}
+
+/* Добавлена плавность для всплывающих подсказок */
+#hotkey-tooltip.show {
+    display: block;
+    animation: fadeInOut 8s ease forwards;
+}
+@keyframes fadeInOut {
+    0%,100% {opacity: 0;}
+    10%,90% {opacity: 1;}
+}
+</style>
+</head>
+<body>
+<header>
+    <h1>Заказы клиентов</h1>
+    <button id="theme-toggle-btn" type="button" aria-pressed="false" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
+</header>
+
+<!-- Canvas для звезд и комет -->
+<canvas id="star-canvas"></canvas>
+
+<!-- SVG для созвездий -->
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<div class="main-wrapper" role="main" aria-label="Список заказов клиентов">
+
+<p style="margin-bottom: 20px;">
+    <a href="{% url 'manager_order_edit' %}" class="button-link" style="background-color:#00796b; box-shadow: 0 4px 8px rgba(0,121,107,0.4);">Создать заказ</a>
+</p>
+
+{% if messages %}
+<ul style="color: red; font-weight: bold;">
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div id="order-search" style="display:none; margin-bottom: 20px;">
+    <input type="text" id="order-search-input" placeholder="Поиск заказов по клиенту или товару" />
+</div>
+
+<table id="orders-table" aria-label="Таблица заказов">
+<thead>
+<tr>
+    <th>ID заказа</th>
+    <th>Клиент</th>
+    <th>Адрес доставки</th>
+    <th>Способ оплаты</th>
+    <th>Дата создания</th>
+    <th>Товары в заказе</th>
+    <th>Действия</th>
+</tr>
+</thead>
+<tbody>
+{% for order in orders %}
+<tr>
+    <td>{{ order.id }}</td>
+    <td>{{ order.user.username }}</td>
+    <td style="white-space: pre-line; max-width: 260px;">{{ order.delivery_address }}</td>
+    <td>{{ order.get_payment_method_display }}</td>
+    <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+    <td>
+        <ul>
+            {% for item in order.items.all %}
+            <li>
+                <strong title="{{ item.book.title }}">{{ item.book.title }}</strong>
+                <span>{{ item.quantity }} шт. × {{ item.book.price|floatformat:2 }} ₽</span>
+            </li>
+            {% empty %}
+            <li><em>Товары отсутствуют</em></li>
+            {% endfor %}
+        </ul>
+    </td>
+    <td>
+        <a href="{% url 'manager_order_edit' order.id %}" class="edit-link" aria-label="Редактировать заказ {{ order.id }}">Редактировать</a><br>
+        <a href="{% url 'manager_order_delete' order.id %}" onclick="return confirm('Вы уверены, что хотите удалить этот заказ?');" class="delete-link" aria-label="Удалить заказ {{ order.id }}">Удалить</a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" style="text-align: center; padding: 20px; font-style: italic;">Заказов нет.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+
+<!-- Всплывающее окно подсказки по горячим клавишам -->
+<div id="hotkey-tooltip" class="show" role="alert" aria-live="polite" aria-atomic="true">
+Используйте Ctrl+Shift+F для поиска по заказам.
+</div>
+
+<script>
+// Оставлен оригинальный скрипт управления темой, фильтрацией и анимациями фона без изменений
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+// resize canvas function
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+
+// Theme check
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+// Star class
+class Star {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.7)'
+            : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+// Comet class
+class Comet {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random() * 1;
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.9)'
+            : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength*0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength*0.5 + this.tailWidth*0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,1)' : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
+
+// Созвездия точки и линии
+let widthC, heightC;
+
+function createConstellationPoints() {
+    widthC = window.innerWidth;
+    heightC = window.innerHeight;
+    return [
+        {x: 0.2 * widthC, y: 0.2 * heightC},
+        {x: 0.4 * widthC, y: 0.25 * heightC},
+        {x: 0.6 * widthC, y: 0.15 * heightC},
+        {x: 0.75 * widthC, y: 0.35 * heightC},
+        {x: 0.85 * widthC, y: 0.2 * heightC},
+        {x: 0.3 * widthC, y: 0.7 * heightC},
+        {x: 0.5 * widthC, y: 0.8 * heightC},
+        {x: 0.7 * widthC, y: 0.75 * heightC},
+        {x: 0.9 * widthC, y: 0.85 * heightC},
+    ];
+}
+
+const constellationLines = [
+    [0,1],[1,2],[2,4],
+    [0,3],[3,4],
+    [5,6],[6,7],[7,8]
+];
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    const points = createConstellationPoints();
+
+    points.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme()?4:6);
+        circle.setAttribute('fill', isDarkTheme()? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()? 'drop-shadow(0 0 4px #ffa6ba)' : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = points[startIdx];
+        const end = points[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme()? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme()? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()? 'drop-shadow(0 0 4px #ffa6ba)' : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+
+createConstellation();
+
+let constellationOffset = {x: 0, y:0};
+let direction = 1;
+
+function animate() {
+    ctx.clearRect(0,0,width,height);
+    stars.forEach(star => {star.update(); star.draw();});
+    comets.forEach(comet => {comet.update(); comet.draw();});
+
+    constellationOffset.x += 0.02 * direction;
+    if(Math.abs(constellationOffset.x) > 10) direction *= -1;
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3)*5}px)`;
+
+    // Мерцание созвездий
+    constellationSVG.querySelectorAll('circle').forEach((circle,i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now()/1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline,i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now()/1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+
+// Управление темой и сохранением настроек
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if(theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    const mainWrapper = document.querySelector('.main-wrapper');
+    if(mainWrapper) {
+        mainWrapper.style.borderRadius = borderRadius;
+        mainWrapper.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+    }
+
+    document.querySelectorAll('#orders-table a.edit-link').forEach(el => el.style.color = accentColor);
+
+    createConstellation();
+
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+}
+
+// Подсказка горячих клавиш
+document.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+
+    // Кнопка переключения темы
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+
+    // Показать подсказку при заходе на страницу
+    const tooltip = document.getElementById('hotkey-tooltip');
+    tooltip.style.display = 'block';
+    setTimeout(()=>{tooltip.style.display = 'none';}, 8000);
+
+    // Обработка горячих клавиш Ctrl+Shift+F для поиска
+    document.addEventListener('keydown', function(event) {
+        if(event.ctrlKey && event.shiftKey && event.code === 'KeyF') {
+            event.preventDefault();
+            const searchDiv = document.getElementById('order-search');
+            if(searchDiv.style.display === 'none') {
+                searchDiv.style.display = 'block';
+                document.getElementById('order-search-input').focus();
+            } else {
+                searchDiv.style.display = 'none';
+            }
+        }
+    });
+
+    // Фильтрация таблицы заказов по вводу в поисковое поле
+    document.getElementById('order-search-input').addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#orders-table tbody tr');
+        rows.forEach(row => {
+            const client = row.cells[1].textContent.toLowerCase();
+            const items = row.cells[5].textContent.toLowerCase();
+            if(client.includes(filter) || items.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+<a href="{% url 'manager_page' %}" class="back-button" aria-label="Назад">← Назад</a>
+</body>
+</html>
+
+{% endblock %}

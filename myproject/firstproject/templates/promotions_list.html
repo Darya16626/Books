@@ -2,235 +2,493 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Акции и скидки - BookHaven</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <style>
-        :root {
-            --color-bg-light: #f9f9f9;
-            --color-text-light: #222222;
-            --color-accent: #0066cc;
-            --color-error: #e74c3c;
-            --color-bg-dark: #1e1e2f;
-            --color-text-dark: #eaeaea;
-            --color-button-bg: var(--color-accent);
-            --color-button-text: #ffffff;
-            --border-radius: 8px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            margin: 0; padding: 20px 0 40px 0;
-            background: var(--color-bg-light);
-            color: var(--color-text-light);
-            font-family: var(--font-family);
-            transition: background-color 0.4s, color 0.4s;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        body.dark-theme {
-            background: var(--color-bg-dark);
-            color: var(--color-text-dark);
-        }
-        .container {
-            max-width: 900px;
-            width: 100%;
-            background: #fff;
-            padding: 40px 45px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: background-color 0.4s, color 0.4s;
-        }
-        body.dark-theme .container {
-            background: #2a2a40;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        h1 {
-            color: var(--color-accent);
-            font-weight: 700;
-            font-size: 2.5rem;
-            text-align: center;
-            margin-bottom: 35px;
-            letter-spacing: 1px;
-            text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
-            transition: color 0.4s;
-        }
-        a.btn, a.btn-primary, a.btn-secondary {
-            display: inline-block;
-            font-weight: 700;
-            padding: 12px 24px;
-            border-radius: var(--border-radius);
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
-            transition: background-color 0.3s;
-            color: var(--color-button-text);
-            background-color: var(--color-button-bg);
-            user-select: none;
-        }
-        a.btn-primary:hover {
-            background-color: #004d99;
-        }
-        a.btn-secondary {
-            background-color: #ccc;
-            color: #333;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        a.btn-secondary:hover {
-            background-color: #aaa;
-            color: #222;
-        }
-        hr {
-            margin: 30px 0;
-            border: none;
-            border-top: 1px solid #ddd;
-            opacity: 0.6;
-            transition: border-color 0.4s;
-        }
-        body.dark-theme hr {
-            border-top-color: #444;
-        }
-        .promotion {
-            border: 1px solid #ccc;
-            padding: 20px 25px;
-            border-radius: var(--border-radius);
-            margin-bottom: 30px;
-            background: #f8fbff;
-            transition: background-color 0.4s, border-color 0.4s;
-        }
-        body.dark-theme .promotion {
-            background: #39405a;
-            border-color: #53618f;
-        }
-        .promotion h2 {
-            color: var(--color-accent);
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-weight: 700;
-            transition: color 0.4s;
-        }
-        .promotion img {
-            max-width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-            cursor: pointer;
-            border-radius: var(--border-radius);
-            margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,102,204,0.2);
-            transition: box-shadow 0.3s;
-        }
-        .promotion img:hover {
-            box-shadow: 0 6px 18px rgba(0,102,204,0.5);
-        }
-        .promotion p,
-        .promotion ul,
-        .promotion a {
-            color: var(--color-text-light);
-            transition: color 0.4s;
-        }
-        body.dark-theme .promotion p,
-        body.dark-theme .promotion ul,
-        body.dark-theme .promotion a {
-            color: var(--color-text-dark);
-        }
-        .promotion ul {
-            padding-left: 20px;
-            margin-top: 10px;
-        }
-        .promotion ul li {
-            margin-bottom: 6px;
-        }
-        .promotion ul li del {
-            color: #888;
-        }
-        .promotion a {
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: underline;
-            margin-right: 10px;
-        }
-        .promotion a:hover {
-            color: #004d99;
-        }
-        /* Кнопка переключения темы */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--color-accent);
-            border: none;
-            color: var(--color-button-text);
-            padding: 10px 14px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
-            transition: background-color 0.3s;
-            z-index: 1000;
-            user-select: none;
-        }
-        .theme-toggle:hover {
-            background-color: #004d99;
-        }
-    </style>
-    <script>
-        window.onload = function() {
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
-        };
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            if(document.body.classList.contains('dark-theme')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        }
-    </script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Акции и скидки - BookHaven</title>
+
+<!-- Подключение необычных шрифтов Google Fonts с поддержкой кириллицы -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
+
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+
+    --font-family: 'Cinzel Decorative', serif;
+
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg-light);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text-light);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body.dark-theme {
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    border-radius: var(--border-radius);
+    padding: 10px;
+    position: relative;
+    margin-bottom: 30px;
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    background: rgba(255 255 255 / 0.85);
+    z-index: 10;
+    transition: box-shadow 0.4s, border-radius 0.4s, background 0.4s;
+}
+body.dark-theme .container {
+    background: rgba(30 30 47 / 0.85);
+}
+
+h1 {
+    text-align: center;
+    color: var(--color-accent);
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin-bottom: 35px;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(163, 196, 243, 0.7);
+    transition: color 0.4s;
+}
+
+.promotion {
+    border: 1px solid #ccc;
+    padding: 20px 25px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    background: #f8fbff;
+    transition: background-color 0.4s, border-color 0.4s;
+}
+body.dark-theme .promotion {
+    background: #39405a;
+    border-color: #53618f;
+}
+
+.promotion h2 {
+    color: var(--color-accent);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 700;
+    transition: color 0.4s;
+}
+
+.promotion img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,102,204,0.2);
+    transition: box-shadow 0.3s;
+}
+.promotion img:hover {
+    box-shadow: 0 6px 18px rgba(0,102,204,0.5);
+}
+
+.promotion p, .promotion ul, .promotion a {
+    color: var(--color-text-light);
+    transition: color 0.4s;
+}
+body.dark-theme .promotion p, body.dark-theme .promotion ul, body.dark-theme .promotion a {
+    color: var(--color-text-dark);
+}
+
+a.btn, a.btn-primary, a.btn-secondary {
+    display: inline-block;
+    font-weight: 700;
+    padding: var(--btn-padding);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: var(--btn-shadow);
+    transition: background-color 0.3s;
+    color: #fff;
+    background-color: var(--color-accent);
+    user-select: none;
+}
+
+a.btn-primary:hover {
+    background-color: #004d99;
+}
+
+a.btn-secondary {
+    background-color: #ccc;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+a.btn-secondary:hover {
+    background-color: #aaa;
+    color: #222;
+}
+
+hr {
+    margin: 30px 0;
+    border: none;
+    border-top: 1px solid #ddd;
+    opacity: 0.6;
+    transition: border-color 0.4s;
+}
+body.dark-theme hr {
+    border-top-color: #444;
+}
+
+/* Canvas и SVG для космического фона */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+/* Кнопка переключения темы */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--color-accent);
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: var(--btn-shadow);
+    transition: background-color 0.3s;
+    z-index: 1000;
+    user-select: none;
+}
+.theme-toggle:hover {
+    background-color: #004d99;
+}
+</style>
 </head>
 <body>
-    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+<button class="theme-toggle" type="button" aria-label="Переключить тему светлая/тёмная">Тёмная / Светлая тема</button>
 
-    <div class="container">
-        <h1>Акции и скидки</h1>
-        <a href="{% url 'promotion_create' %}" class="btn btn-primary">Создать новую акцию</a>
-        <hr>
-        {% if promotions %}
-            <div class="promotions-list">
-                {% for promo in promotions %}
-                    <div class="promotion">
-                        <h2>{{ promo.title }} - {{ promo.discount_percent }}% скидка</h2>
-                        {% if promo.image_url %}
-                            <a href="{% url 'promotion_books_list' promo.id %}">
-                                <img src="{{ promo.image_url }}" alt="{{ promo.title }}">
-                            </a>
-                        {% endif %}
-                        <p>{{ promo.description }}</p>
-                        <p><strong>Период:</strong> {{ promo.start_datetime }} - {{ promo.end_datetime }}</p>
-                        <p><strong>Книги в акции:</strong></p>
-                        <ul>
-                            {% for pb in promo.promotion_books.all %}
-                                <li>{{ pb.book.title }}:
-                                    <del>{{ pb.book.original_price }} ₽</del>
-                                    <strong>{{ pb.book.price|floatformat:2 }}</strong> ₽
-                                </li>
-                            {% empty %}
-                                <li>Нет книг</li>
-                            {% endfor %}
-                        </ul>
-                        <a href="{% url 'promotion_edit' promo.id %}">Редактировать</a> |
-                        <a href="{% url 'promotion_delete' promo.id %}">Удалить</a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>Акций пока нет.</p>
-        {% endif %}
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
 
-        <a href="{% url 'admin_page' %}" class="btn btn-secondary" style="margin-top:15px;">Назад</a>
-    </div>
+<div class="container" role="main" aria-label="Акции и скидки">
+    <h1>Акции и скидки</h1>
+    <a href="{% url 'promotion_create' %}" class="btn btn-primary">Создать новую акцию</a>
+    <hr>
+    {% if promotions %}
+        <div class="promotions-list">
+            {% for promo in promotions %}
+                <div class="promotion" tabindex="0">
+                    <h2>{{ promo.title }} - {{ promo.discount_percent }}% скидка</h2>
+                    {% if promo.image_url %}
+                        <a href="{% url 'promotion_books_list' promo.id %}">
+                            <img src="{{ promo.image_url }}" alt="{{ promo.title }}">
+                        </a>
+                    {% endif %}
+                    <p>{{ promo.description }}</p>
+                    <p><strong>Период:</strong> {{ promo.start_datetime }} - {{ promo.end_datetime }}</p>
+                    <a href="{% url 'promotion_edit' promo.id %}">Редактировать</a> |
+                    <a href="{% url 'promotion_delete' promo.id %}">Удалить</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Акций пока нет.</p>
+    {% endif %}
+    <a href="{% url 'admin_page' %}" class="btn btn-secondary" style="margin-top:15px;">Назад</a>
+</div>
+
+<script>
+// Canvas setup
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', resize);
+
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+// Star class
+class Star {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.7)'
+            : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+// Comet class
+class Comet {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random() * 1;
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.9)'
+            : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength*0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength*0.5 + this.tailWidth*0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,1)'
+            : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
+
+const constellationPoints = [
+    {x: 0.2 * width, y: 0.2 * height},
+    {x: 0.4 * width, y: 0.25 * height},
+    {x: 0.6 * width, y: 0.15 * height},
+    {x: 0.75 * width, y: 0.35 * height},
+    {x: 0.85 * width, y: 0.2 * height},
+
+    {x: 0.3 * width, y: 0.7 * height},
+    {x: 0.5 * width, y: 0.8 * height},
+    {x: 0.7 * width, y: 0.75 * height},
+    {x: 0.9 * width, y: 0.85 * height},
+];
+
+const constellationLines = [
+    [0, 1], [1, 2], [2, 4],
+    [0, 3], [3, 4],
+    [5, 6], [6, 7], [7, 8]
+];
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = {x: 0, y: 0};
+let direction = 1;
+
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    stars.forEach(star => {
+        star.update();
+        star.draw();
+    });
+
+    comets.forEach(comet => {
+        comet.update();
+        comet.draw();
+    });
+
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction *= -1;
+
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+});
+
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if(theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    const container = document.querySelector('.container');
+    if(container) {
+        container.style.borderRadius = borderRadius;
+        container.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+    }
+
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+    createConstellation();
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+    document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
+});
+</script>
+
 </body>
 </html>

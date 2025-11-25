@@ -1,0 +1,9 @@
+{% block content %}
+<h1>Удаление заказа #{{ order.id }}</h1>
+<p>Вы уверены, что хотите удалить этот заказ?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Подтвердить удаление</button>
+    <a href="{% url 'manager_order_list' %}">Отмена</a>
+</form>
+{% endblock %}

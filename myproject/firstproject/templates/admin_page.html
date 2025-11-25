@@ -2,230 +2,571 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Админ - BookHaven</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <style>
-        /* CSS из вашего примера (color variables, body, header, main, .panel-card, etc.) */
-        :root {
-            --color-bg-light: #f9f9f9;
-            --color-text-light: #222222;
-            --color-accent: #0066cc;
-            --color-error: #e74c3c;
-            --color-bg-dark: #1e1e2f;
-            --color-text-dark: #eaeaea;
-            --color-button-bg: var(--color-accent);
-            --color-button-text: #ffffff;
-            --border-radius: 10px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            --shadow-light: rgba(0, 102, 204, 0.25);
-        }
-        body {
-            margin: 0;
-            background-color: var(--color-bg-light);
-            color: var(--color-text-light);
-            font-family: var(--font-family);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 20px;
-            transition: background-color 0.4s, color 0.4s;
-        }
-        body.dark-theme {
-            background-color: var(--color-bg-dark);
-            color: var(--color-text-dark);
-        }
-        header {
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-        header h1 {
-            color: var(--color-accent);
-            font-size: 2.4rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        .theme-toggle {
-            background: var(--color-accent);
-            color: var(--color-button-text);
-            border: none;
-            padding: 10px 18px;
-            border-radius: 30px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px var(--shadow-light);
-            transition: background-color 0.3s;
-        }
-        .theme-toggle:hover {
-            background-color: #004d99;
-        }
-        main {
-            width: 100%;
-            max-width: 1000px;
-            background: #fff;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 35px 45px;
-            transition: background-color 0.4s, color 0.4s;
-        }
-        body.dark-theme main {
-            background: #2a2a40;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        main h2 {
-            color: var(--color-accent);
-            font-weight: 700;
-            font-size: 2rem;
-            margin-top: 0;
-            margin-bottom: 30px;
-            border-bottom: 3px solid var(--color-accent);
-            padding-bottom: 10px;
-        }
-        .welcome {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-        }
-        .admin-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 30px;
-        }
-        .panel-card {
-            background: #f5faff;
-            border-radius: 12px;
-            padding: 24px 20px;
-            box-shadow: 0 6px 20px rgba(0,102,204,0.15);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            user-select: none;
-            color: var(--color-accent);
-            text-align: center;
-        }
-        body.dark-theme .panel-card {
-            background: #3a3a57;
-            box-shadow: 0 6px 24px rgba(0,102,204,0.5);
-            color: #a2d5c6;
-        }
-        .panel-card:hover {
-            box-shadow: 0 8px 30px rgba(0,102,204,0.5);
-            background: #e6f0ff;
-            color: var(--color-accent);
-        }
-        body.dark-theme .panel-card:hover {
-            background: #4a5a82;
-            color: #e0fff7;
-        }
-        .card-icon {
-            font-size: 36px;
-            margin-bottom: 15px;
-        }
-        .card-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-        .card-desc {
-            font-size: 0.95rem;
-            color: #555;
-        }
-        body.dark-theme .card-desc {
-            color: #ccc;
-        }
-        .logout-link {
-            display: inline-block;
-            margin-top: 50px;
-            background: #e74c3c;
-            color: #fff;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 700;
-            box-shadow: 0 5px 15px rgba(231,76,60,0.5);
-            transition: background-color 0.3s;
-            text-align: center;
-        }
-        .logout-link:hover {
-            background-color: #c0392b;
-        }
-        body.dark-theme .logout-link {
-            background: #c0392b;
-            box-shadow: 0 5px 15px rgba(192,57,43,0.7);
-        }
-    </style>
-    <script>
-        window.onload = function() {
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
-        };
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            if(document.body.classList.contains('dark-theme')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        }
-    </script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BookHaven Admin</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
+
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: #e6f0ff;
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+
+    --font-family: 'Cinzel Decorative', serif;
+
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* Canvas фон */
+#star-canvas, #constellation-svg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+/* Тёмный режим */
+body.dark-theme {
+  --color-bg: var(--color-bg-dark);
+  --color-text: var(--color-text-dark);
+  --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+  --card-shadow: var(--card-shadow-dark);
+}
+body:not(.dark-theme) {
+  --color-bg: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+  --color-text: var(--color-text-light);
+  --btn-shadow: 0 5px 15px rgba(0,102,255,0.4);
+  --card-shadow: var(--card-shadow-light);
+}
+
+/* Основные стили */
+body {
+  margin: 30px 20px;
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.8s ease, color 0.4s ease, font-family 0.4s, border-radius 0.4s, box-shadow 0.4s;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow-x: hidden;
+  z-index: 10;
+}
+
+header {
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  position: relative;
+}
+header h1 {
+  color: var(--color-accent);
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0;
+  font-family: var(--font-family);
+}
+.theme-toggle {
+  margin-left: 20px;
+  padding: var(--btn-padding);
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: var(--btn-font-size);
+  box-shadow: var(--btn-shadow);
+  user-select: none;
+  transition: background-color 0.3s;
+}
+.theme-toggle:hover {
+  background-color: #004a99;
+}
+
+main {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(255 255 255 / 0.85);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow-light);
+  padding: 35px 45px;
+  transition: background-color 0.4s, color 0.4s, border-radius 0.4s, box-shadow 0.4s;
+  font-family: var(--font-family);
+  position: relative;
+  z-index: 30;
+  text-align: center;
+  filter: brightness(1.3);
+}
+body.dark-theme main {
+  background: rgba(30 30 47 / 0.85);
+  box-shadow: var(--card-shadow-dark);
+  color: var(--color-text-dark);
+  filter: brightness(1);
+}
+
+main h2 {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0 0 30px 0;
+  border-bottom: 3px solid var(--color-accent);
+  padding-bottom: 10px;
+  font-family: var(--font-family);
+}
+
+.welcome {
+  font-size: 1.3rem;
+  margin-bottom: 40px;
+  font-family: var(--font-family);
+}
+
+.admin-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 30px;
+}
+
+.panel-card {
+  background: rgba(255 255 255 / 0.9);
+  border-radius: var(--border-radius);
+  padding: 24px 20px;
+  box-shadow: 0 6px 20px rgba(0,102,204,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  color: var(--color-accent);
+  text-align: center;
+  font-family: var(--font-family);
+  text-decoration: none;
+  transition: background-color 0.3s, box-shadow 0.3s, border-radius 0.4s, color 0.3s;
+}
+body.dark-theme .panel-card {
+  background: rgba(30 30 47 / 0.9);
+  box-shadow: 0 6px 24px rgba(0,102,204,0.5);
+}
+.panel-card:hover {
+  box-shadow: 0 8px 30px rgba(0,102,204,0.5);
+  background: rgba(230 240 255 / 0.85);
+  color: var(--color-accent);
+}
+body.dark-theme .panel-card:hover {
+  background: rgba(74 90 130 / 0.85);
+  color: #e0fff7;
+}
+
+.card-icon {
+  font-size: 36px;
+  margin-bottom: 15px;
+}
+.card-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: var(--color-accent) !important;
+}
+.card-desc {
+  font-size: 0.95rem;
+  color: #555;
+}
+body.dark-theme .card-desc {
+  color: #ccc;
+}
+
+.logout-link {
+  display: inline-block;
+  margin-top: 50px;
+  background: #e74c3c;
+  color: #fff;
+  padding: var(--btn-padding);
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  box-shadow: var(--btn-shadow);
+  font-size: var(--btn-font-size);
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+  font-family: var(--font-family);
+  transition: background-color 0.3s, border-radius 0.4s, padding 0.4s, font-size 0.4s;
+}
+.logout-link:hover {
+  background-color: #c0392b;
+}
+body.dark-theme .logout-link {
+  background: #c0392b;
+  box-shadow: 0 5px 15px rgba(192,57,43,0.7);
+}
+
+a.panel-card,
+.logout-link,
+.theme-toggle {
+  border-radius: var(--border-radius);
+}
+</style>
+
+<script>
+const lightToDarkBgMap = {
+    'bg-effect-light-1': 'bg-effect-dark-1',
+    'bg-effect-light-2': 'bg-effect-dark-2',
+    'bg-effect-light-3': 'bg-effect-dark-3',
+    'bg-effect-light-4': 'bg-effect-dark-4',
+    'bg-effect-light-5': 'bg-effect-dark-5',
+    'bg-effect-light-6': 'bg-effect-dark-6',
+    'bg-effect-dark-1': 'bg-effect-light-1',
+    'bg-effect-dark-2': 'bg-effect-light-2',
+    'bg-effect-dark-3': 'bg-effect-light-3',
+    'bg-effect-dark-4': 'bg-effect-light-4',
+    'bg-effect-dark-5': 'bg-effect-light-5',
+    'bg-effect-dark-6': 'bg-effect-light-6',
+};
+
+function applyDesignSettings() {
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const theme = localStorage.getItem('theme') || 'light';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+    let bgEffectLight = localStorage.getItem('bgEffectLight') || 'bg-effect-light-1';
+    let bgEffectDark = localStorage.getItem('bgEffectDark') || lightToDarkBgMap[bgEffectLight] || 'bg-effect-dark-1';
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    let btnPadding, btnFontSize;
+    switch(borderRadius) {
+        case '0px': btnPadding = '8px 16px'; btnFontSize = '0.85rem'; break;
+        case '5px': btnPadding = '10px 20px'; btnFontSize = '0.9rem'; break;
+        case '10px': btnPadding = '12px 25px'; btnFontSize = '1rem'; break;
+        case '20px': btnPadding = '14px 30px'; btnFontSize = '1.1rem'; break;
+        case '9999px': btnPadding = '16px 34px'; btnFontSize = '1.15rem'; break;
+        default: btnPadding = '12px 25px'; btnFontSize = '1rem';
+    }
+    document.documentElement.style.setProperty('--btn-padding', btnPadding);
+    document.documentElement.style.setProperty('--btn-font-size', btnFontSize);
+
+    if(theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    let bgEffectDiv = document.getElementById('background-effect');
+    if(!bgEffectDiv) {
+        bgEffectDiv = document.createElement('div');
+        bgEffectDiv.id = 'background-effect';
+        bgEffectDiv.classList.add('background-effect');
+        document.body.insertBefore(bgEffectDiv, document.body.firstChild);
+    }
+    bgEffectDiv.className = 'background-effect';
+    if(theme === 'dark') {
+        bgEffectDiv.classList.add(bgEffectDark);
+    } else {
+        bgEffectDiv.classList.add(bgEffectLight);
+    }
+}
+
+function toggleTheme() {
+    if(document.body.classList.contains('dark-theme')) {
+        localStorage.setItem('theme', 'light');
+    } else {
+        localStorage.setItem('theme', 'dark');
+    }
+    location.reload();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyDesignSettings();
+});
+</script>
 </head>
 <body>
-    <header>
-        <h1>BookHaven Admin</h1>
-        <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
-    </header>
-    <main>
-        <h2>Добро пожаловать, {{ user.get_full_name|default:user.email }}!</h2>
-        <p class="welcome">Роль: {{ user.profile.get_role_display }}</p>
-        <p class="welcome">Управляйте магазином, следите за заказами и добавляйте новые книги.</p>
+<header>
+    <h1>BookHaven Admin</h1>
+    <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-pressed="false" aria-label="Переключить тему">Тёмная / Светлая тема</button>
+</header>
+<main>
+    <h2>Добро пожаловать, {{ user.get_full_name|default:user.email }}!</h2>
+    <p class="welcome">Роль: {{ user.profile.get_role_display }}</p>
+    <p class="welcome">Управляйте магазином, следите за заказами и добавляйте новые книги.</p>
 
-        <section class="admin-panel">
-            <a href="{% url 'admin_users_list' %}" class="panel-card" title="Просмотр и управление пользователями" style="text-decoration:none; cursor:pointer;">
-                <div class="card-icon">👥</div>
-                <div class="card-title">Пользователи</div>
-                <div class="card-desc">Добавление, редактирование, удаление, изменение ролей, блокировка</div>
-            </a>                
-            <a href="{% url 'book_catalog' %}" class="panel-card" title="Управление каталогом книг" style="text-decoration:none; cursor:pointer;">
-                <div class="card-icon">📚</div>
-                <div class="card-title">Каталог книг</div>
-                <div class="card-desc">Добавление, редактирование, удаление товаров, поиск и фильтрация</div>
-            </a>            
-            <div class="panel-card" onclick="alert('Просмотр и управление заказами')" title="Заказы">
-                <div class="card-icon">🛒</div>
-                <div class="card-title">Заказы</div>
-                <div class="card-desc">Просмотр, изменение статусов, создание и удаление заказов</div>
-            </div>
-            <a href="{% url 'promotions_list' %}" class="panel-card" title="Управление акциями и скидками" style="text-decoration:none; cursor:pointer;">
-                <div class="card-icon">🎁</div>
-                <div class="card-title">Акции и скидки</div>
-                <div class="card-desc">Создание, редактирование, удаление промо-кампаний</div>
-            </a>
-            <div class="panel-card" onclick="alert('Управление уведомлениями')" title="Уведомления">
-                <div class="card-icon">📣</div>
-                <div class="card-title">Уведомления</div>
-                <div class="card-desc">Создание, отправка, редактирование уведомлений</div>
-            </div>
-            <div class="panel-card" onclick="alert('Просмотр аналитики и статистики')" title="Аналитика и статистика">
-                <div class="card-icon">📈</div>
-                <div class="card-title">Аналитика</div>
-                <div class="card-desc">Статистика по пользователям, товарам и продажам</div>
-            </div>
-            <div class="panel-card" onclick="alert('Системы администрирования и мониторинга')" title="Администрирование и безопасность">
-                <div class="card-icon">🔒</div>
-                <div class="card-title">Безопасность</div>
-                <div class="card-desc">Администрирование, мониторинг и обеспечение безопасности</div>
-            </div>
-        </section>
+    <section class="admin-panel" role="region" aria-label="Панель управления">
+        <a href="{% url 'admin_users_list' %}" class="panel-card" title="Просмотр и управление пользователями">
+            <div class="card-icon">👥</div>
+            <div class="card-title">Пользователи</div>
+            <div class="card-desc">Добавление, редактирование, удаление, изменение ролей, блокировка</div>
+        </a>
+        <a href="{% url 'book_catalog' %}" class="panel-card" title="Управление каталогом книг">
+            <div class="card-icon">📚</div>
+            <div class="card-title">Каталог книг</div>
+            <div class="card-desc">Добавление, редактирование, удаление товаров, поиск и фильтрация</div>
+        </a>
+        <a href="{% url 'promotions_list' %}" class="panel-card" title="Управление акциями и скидками">
+            <div class="card-icon">🎁</div>
+            <div class="card-title">Акции и скидки</div>
+            <div class="card-desc">Создание, редактирование, удаление промо-кампаний</div>
+        </a>
+        <a href="{% url 'admin_analytics' %}" class="panel-card" title="Аналитика и статистика">
+            <div class="card-icon">📈</div>
+            <div class="card-title">Аналитика</div>
+            <div class="card-desc">Статистика по пользователям, товарам и продажам</div>
+        </a>
+        <div class="panel-card" title="Администрирование и безопасность" onclick="window.location.href='{% url 'admin_design' %}'" style="cursor:pointer; user-select:none;">
+            <div class="card-icon">🎨</div>
+            <div class="card-title">Дизайн</div>
+            <div class="card-desc">Возможность изменения дизайна сайта</div>
+        </div>
+    </section>
 
-        <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
-    </main>
+    <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
+</main>
+
+<!-- Canvas для звезд и комет -->
+<canvas id="star-canvas"></canvas>
+
+<!-- SVG для созвездий -->
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<script>
+  const canvas = document.getElementById('star-canvas');
+  const ctx = canvas.getContext('2d');
+  const constellationSVG = document.getElementById('constellation-svg');
+  let width, height;
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Star {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+      this.alpha = Math.random() * 0.8 + 0.4;
+      this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+      this.speedX = (Math.random() - 0.5) * 0.06;
+      this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+      this.alpha += this.dAlpha;
+      if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if (this.x < 0) this.x = width;
+      if (this.x > width) this.x = 0;
+      if (this.y < 0) this.y = height;
+      if (this.y > height) this.y = 0;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.fillStyle = isDarkTheme()
+        ? `rgba(255, 255, 255, ${this.alpha})`
+        : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+      ctx.shadowColor = isDarkTheme()
+        ? 'rgba(255,255,255,0.7)'
+        : 'rgba(100,170,255,0.8)';
+      ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  class Comet {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height * 0.5;
+      this.length = 80 + Math.random() * 40;
+      this.speedX = 4 + Math.random() * 3;
+      this.speedY = -0.5 + Math.random() * 1;
+      this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+      this.tailLength = this.length * 1.5;
+      this.tailWidth = this.radius * 4;
+      this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+        this.reset();
+        this.x = -this.tailLength;
+      }
+    }
+    draw() {
+      const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+      gradient.addColorStop(0, isDarkTheme()
+        ? `rgba(255,255,255,${this.alpha})`
+        : `rgba(100,170,255,${this.alpha * 0.9})`);
+      gradient.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.beginPath();
+      ctx.fillStyle = gradient;
+      ctx.shadowColor = isDarkTheme()
+        ? 'rgba(255,255,255,0.9)'
+        : 'rgba(100,170,255,0.7)';
+      ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength*0.5);
+      ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength*0.5 + this.tailWidth*0.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.fillStyle = isDarkTheme()
+        ? `rgba(255,255,255,${this.alpha})`
+        : `rgba(100,170,255,${this.alpha})`;
+      ctx.shadowColor = isDarkTheme()
+        ? 'rgba(255,255,255,1)'
+        : 'rgba(100,170,255,1)';
+      ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+  }
+
+  const stars = [];
+  const TOTAL_STARS = 180;
+  for(let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
+
+  const comets = [];
+  const TOTAL_COMETS = 3;
+  for(let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
+
+  function updateConstellationPoints() {
+    return [
+      {x: 0.2 * width, y: 0.2 * height},
+      {x: 0.4 * width, y: 0.25 * height},
+      {x: 0.6 * width, y: 0.15 * height},
+      {x: 0.75 * width, y: 0.35 * height},
+      {x: 0.85 * width, y: 0.2 * height},
+
+      {x: 0.3 * width, y: 0.7 * height},
+      {x: 0.5 * width, y: 0.8 * height},
+      {x: 0.7 * width, y: 0.75 * height},
+      {x: 0.9 * width, y: 0.85 * height},
+    ];
+  }
+
+  const constellationLines = [
+    [0, 1], [1, 2], [2, 4],
+    [0, 3], [3, 4],
+    [5, 6], [6, 7], [7, 8]
+  ];
+
+  function createConstellation() {
+    const points = updateConstellationPoints();
+    constellationSVG.innerHTML = '';
+
+    points.forEach((point, i) => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', point.x);
+      circle.setAttribute('cy', point.y);
+      circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+      circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+      circle.style.filter = isDarkTheme()
+          ? 'drop-shadow(0 0 4px #ffa6ba)'
+          : 'drop-shadow(0 0 6px #5fb0ff)';
+      constellationSVG.appendChild(circle);
+    });
+
+    constellationLines.forEach(line => {
+      const [startIdx, endIdx] = line;
+      const start = points[startIdx];
+      const end = points[endIdx];
+      const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+      polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+      polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+      polyline.setAttribute('fill', 'none');
+      polyline.style.filter = isDarkTheme()
+          ? 'drop-shadow(0 0 4px #ffa6ba)'
+          : 'drop-shadow(0 0 6px #5fb0ff)';
+      constellationSVG.appendChild(polyline);
+    });
+  }
+  createConstellation();
+
+  let constellationOffset = {x: 0, y: 0};
+  let direction = 1;
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    stars.forEach(star => {
+      star.update();
+      star.draw();
+    });
+
+    comets.forEach(comet => {
+      comet.update();
+      comet.draw();
+    });
+
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction *= -1;
+
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+      let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+      circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+      let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+      pline.style.opacity = baseAlpha.toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  themeToggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    createConstellation();
+  });
+</script>
 </body>
 </html>

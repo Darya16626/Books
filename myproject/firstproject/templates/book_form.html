@@ -1,5 +1,4 @@
 {% load static %}
-
 {% block content %}
 <!DOCTYPE html>
 <html lang="ru">
@@ -7,176 +6,470 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% if create %}Добавление книги{% else %}Редактирование книги{% endif %} - BookHaven</title>
+
+    <!-- Подключение шрифтов с поддержкой кириллицы -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
     <style>
-        :root {
-            --color-bg-light: #f9f9f9;
-            --color-text-light: #222222;
-            --color-accent: #0066cc;
-            --color-error: #e74c3c;
-            --color-bg-dark: #1e1e2f;
-            --color-text-dark: #eaeaea;
-            --color-button-bg: var(--color-accent);
-            --color-button-text: #ffffff;
-            --border-radius: 8px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            margin: 20px; /* изменено с 0 на 20px для отступов */
-            padding: 0;
-            background: var(--color-bg-light);
-            color: var(--color-text-light);
-            font-family: var(--font-family);
-            /* убраны flex и height */
-            transition: background-color 0.4s, color 0.4s;
-            min-height: 100vh;
-        }
-        body.dark-theme {
-            background: var(--color-bg-dark);
-            color: var(--color-text-dark);
-        }
-        .form-container {
-            background: #fff;
-            padding: 40px 45px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            max-width: 420px;
-            width: 100%;
-            margin: 40px auto; /* добавлено центрирование с вертикальными отступами */
-            transition: background-color 0.4s, color 0.4s;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        body.dark-theme .form-container {
-            background: #2a2a40;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        h2 {
-            margin: 0;
-            font-weight: 700;
-            font-size: 2rem;
-            letter-spacing: 1px;
-            text-align: center;
-            color: var(--color-accent);
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        label {
-            font-weight: 600;
-            color: inherit;
-            margin-bottom: 6px;
-            user-select: none;
-        }
-        input[type="text"], textarea, select {
-            padding: 14px 16px;
-            border: 2px solid #ccc;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-            background: #fafafa;
-            color: #222;
-            font-family: var(--font-family);
-        }
-        body.dark-theme input[type="text"], 
-        body.dark-theme textarea,
-        body.dark-theme select {
-            background: #3a3a57;
-            color: var(--color-text-dark);
-            border-color: #555;
-        }
-        input[type="text"]:focus, textarea:focus, select:focus {
-            border-color: var(--color-accent);
-            outline: none;
-        }
-        .error-msg {
-            color: var(--color-error);
-            margin-bottom: 10px;
-            font-weight: 600;
-            text-align: center;
-        }
-        button[type="submit"] {
-            padding: 16px 0;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--color-button-bg);
-            color: var(--color-button-text);
-            font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0,102,204,0.4);
-            transition: background-color 0.3s;
-        }
-        button[type="submit"]:hover {
-            background-color: #004d99;
-        }
-        a.cancel-link {
-            text-align: center;
-            padding: 12px 0;
-            color: var(--color-accent);
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        a.cancel-link:hover {
-            color: #003366;
-        }
-        /* Кнопка переключения темы */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--color-accent);
-            border: none;
-            color: var(--color-button-text);
-            padding: 10px 14px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0,102,204,0.5);
-            transition: background-color 0.3s;
-            z-index: 1000;
-        }
-        .theme-toggle:hover {
-            background-color: #004d99;
-        }
+    :root {
+        --color-bg-light: #e6f0ff;
+        --color-bg-dark: #1a162b;
+        --color-text-light: #222222;
+        --color-text-dark: #eaeaea;
+        --color-accent: #0066cc;
+        --color-button-text: #fff;
+        --border-radius: 10px;
+        --btn-padding: 12px 25px;
+        --btn-font-size: 1rem;
+        --font-family: 'Cinzel Decorative', serif;
+        --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+        --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+        --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    body {
+        margin: 30px 20px;
+        font-family: var(--font-family);
+        background: var(--color-bg-light);
+        color: var(--color-text-light);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        transition: background-color 0.8s ease, color 0.4s ease, font-family 0.4s;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    body.dark-theme {
+        background: var(--color-bg-dark);
+        color: var(--color-text-dark);
+    }
+    .form-container {
+        background: rgba(255 255 255 / 0.85);
+        padding: 40px 45px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow-light);
+        max-width: 420px;
+        width: 100%;
+        margin: 40px auto;
+        transition: background-color 0.4s, box-shadow 0.4s, color 0.4s;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 10;
+        position: relative;
+    }
+    body.dark-theme .form-container {
+        background: rgba(30 30 47 / 0.85);
+        box-shadow: var(--card-shadow-dark);
+    }
+    h2 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 2rem;
+        letter-spacing: 1px;
+        text-align: center;
+        color: var(--color-accent);
+        font-family: var(--font-family);
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    label {
+        font-weight: 600;
+        color: inherit;
+        margin-bottom: 6px;
+        user-select: none;
+        font-family: var(--font-family);
+    }
+    input[type="text"], textarea, select {
+        padding: 14px 16px;
+        border: 2px solid #ccc;
+        border-radius: 6px;
+        font-size: var(--btn-font-size);
+        font-family: var(--font-family);
+        background: #fafafa;
+        color: #222;
+        transition: border-color 0.3s ease;
+        resize: vertical;
+    }
+    body.dark-theme input[type="text"], 
+    body.dark-theme textarea,
+    body.dark-theme select {
+        background: #3a3a57;
+        color: var(--color-text-dark);
+        border-color: #555;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+        border-color: var(--color-accent);
+        outline: none;
+    }
+    .error-msg {
+        color: var(--color-button-bg);
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-align: center;
+        font-family: var(--font-family);
+    }
+    button[type="submit"] {
+        padding: var(--btn-padding);
+        border: none;
+        border-radius: var(--border-radius);
+        background-color: var(--color-accent);
+        color: var(--color-button-text);
+        font-weight: 700;
+        font-size: calc(var(--btn-font-size) + 0.1rem);
+        cursor: pointer;
+        box-shadow: var(--btn-shadow);
+        font-family: var(--font-family);
+        transition: background-color 0.3s;
+    }
+    button[type="submit"]:hover {
+        background-color: #004d99;
+    }
+    a.cancel-link {
+        text-align: center;
+        padding: 12px 0;
+        color: var(--color-accent);
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.3s;
+        font-family: var(--font-family);
+    }
+    a.cancel-link:hover {
+        color: #003366;
+    }
+    .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--color-accent);
+        border: none;
+        color: var(--color-button-text);
+        padding: var(--btn-padding);
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: var(--btn-font-size);
+        box-shadow: var(--btn-shadow);
+        transition: background-color 0.3s;
+        z-index: 1000;
+        font-family: var(--font-family);
+    }
+    .theme-toggle:hover {
+        background-color: #004d99;
+    }
+    /* Canvas и SVG для фона */
+    #star-canvas, #constellation-svg {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+    }
     </style>
-    <script>
-        window.onload = function() {
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
-        };
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            if(document.body.classList.contains('dark-theme')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        }
-    </script>
 </head>
 <body>
-    <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
+<button class="theme-toggle" type="button" aria-pressed="false" aria-label="Переключить тему" onclick="toggleTheme()">Тёмная / Светлая тема</button>
 
-    <div class="form-container">
-        <h2>{% if create %}Добавление книги{% else %}Редактирование книги{% endif %}</h2>
-        {% if form.errors %}
-            <div class="error-msg">Пожалуйста, исправьте ошибки в форме.</div>
-        {% endif %}
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">{% if create %}Добавить{% else %}Сохранить{% endif %}</button>
-        </form>
-        <a href="{% url 'book_catalog' %}" class="cancel-link">Отмена</a>
-    </div>
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<div class="form-container" role="main" aria-label="Форма {% if create %}создания{% else %}редактирования{% endif %} книги">
+    <h2>{% if create %}Добавление книги{% else %}Редактирование книги{% endif %}</h2>
+    {% if form.errors %}
+        <div class="error-msg">Пожалуйста, исправьте ошибки в форме.</div>
+    {% endif %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <label for="{{ form.title.id_for_label }}">Название</label>
+        {{ form.title }}
+
+        <label for="{{ form.author.id_for_label }}">Автор</label>
+        {{ form.author }}
+
+        <label for="{{ form.genre.id_for_label }}">Жанр</label>
+        {{ form.genre }}
+
+        <label for="{{ form.year_created.id_for_label }}">Год создания книги</label>
+        {{ form.year_created }}
+
+        <label for="{{ form.language.id_for_label }}">Язык книги</label>
+        {{ form.language }}
+
+        <label for="{{ form.description.id_for_label }}">Описание</label>
+        {{ form.description }}
+
+        <label for="{{ form.price.id_for_label }}">Цена</label>
+        {{ form.price }}
+
+        <label for="{{ form.stock_quantity.id_for_label }}">Количество на складе</label>
+        {{ form.stock_quantity }}
+
+        <label for="{{ form.isbn.id_for_label }}">ISBN</label>
+        {{ form.isbn }}
+
+        <label for="{{ form.image_urls.id_for_label }}">Ссылки на изображения (через запятую)</label>
+        {{ form.image_urls }}
+
+        <label for="{{ form.delivery_days.id_for_label }}">Количество дней доставки</label>
+        {{ form.delivery_days }}
+
+        <button type="submit">{% if create %}Добавить{% else %}Сохранить{% endif %}</button>
+    </form>
+    <a href="{% url 'book_catalog' %}" class="cancel-link">Отмена</a>
+</div>
+
+<script>
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+
+class Star {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if(this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x < 0) this.x = width;
+        if(this.x > width) this.x = 0;
+        if(this.y < 0) this.y = height;
+        if(this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.7)'
+            : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Comet {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random()*width;
+        this.y = Math.random()*height*0.5;
+        this.length = 80 + Math.random()*40;
+        this.speedX = 4 + Math.random()*3;
+        this.speedY = -0.5 + Math.random()*1;
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random()*0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength * 0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,0.9)'
+            : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength * 0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength * 0.5 + this.tailWidth * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255,255,255,1)'
+            : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i=0; i<TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i=0; i<TOTAL_COMETS; i++) comets.push(new Comet());
+
+const constellationPoints = [
+    {x: 0.2 * width, y: 0.2 * height},
+    {x: 0.4 * width, y: 0.25 * height},
+    {x: 0.6 * width, y: 0.15 * height},
+    {x: 0.75 * width, y: 0.35 * height},
+    {x: 0.85 * width, y: 0.2 * height},
+
+    {x: 0.3 * width, y: 0.7 * height},
+    {x: 0.5 * width, y: 0.8 * height},
+    {x: 0.7 * width, y: 0.75 * height},
+    {x: 0.9 * width, y: 0.85 * height},
+];
+
+const constellationLines = [
+    [0,1],[1,2],[2,4],
+    [0,3],[3,4],
+    [5,6],[6,7],[7,8]
+];
+
+function createConstellation(){
+    constellationSVG.innerHTML = '';
+
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = {x: 0, y:0};
+let direction = 1;
+function animate(){
+    ctx.clearRect(0, 0, width, height);
+
+    stars.forEach(star => { star.update(); star.draw(); });
+    comets.forEach(comet => { comet.update(); comet.draw(); });
+
+    constellationOffset.x += 0.02 * direction;
+    if(Math.abs(constellationOffset.x) > 10) direction *= -1;
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => {
+    createConstellation();
+});
+
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+    const btnFontSize = localStorage.getItem('btnFontSize') || '1rem';
+
+    if(theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+    document.documentElement.style.setProperty('--btn-font-size', btnFontSize);
+    document.documentElement.style.setProperty('--btn-padding', `calc(${btnFontSize} * 1.2) calc(${btnFontSize} * 2.1)`);
+
+    createConstellation();
+
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+}
+
+document.querySelector('.theme-toggle').addEventListener('click', () => {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+});
+</script>
 </body>
 </html>
 {% endblock %}

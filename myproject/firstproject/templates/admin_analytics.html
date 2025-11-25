@@ -1,0 +1,441 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аналитика продуктов и пользователей</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');
+
+  /* Reset and base styles */
+  * {
+    box-sizing: border-box;
+    user-select: none;
+  }
+  body {
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 30px 20px 50px;
+    overflow-x: hidden;
+    color: #f5f7fa;
+    background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #0f2027);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @keyframes gradientBG {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+  }
+
+  h1 {
+    font-size: 3rem;
+    text-align: center;
+    font-weight: 900;
+    margin-bottom: 30px;
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 3px 6px rgba(255, 165, 0, 0.9));
+    letter-spacing: 0.15em;
+    user-select:none;
+    animation: textGlow 3s ease-in-out infinite alternate;
+    cursor: default;
+  }
+  @keyframes textGlow {
+    0% {
+      filter: drop-shadow(0 3px 6px rgba(255, 165, 0, 0.6));
+    }
+    100% {
+      filter: drop-shadow(0 6px 18px #ffb700cc);
+    }
+  }
+
+  .panel-card {
+    max-width: 900px;
+    margin: 0 auto 30px;
+    background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+    border-radius: 20px;
+    padding: 30px 40px;
+    box-shadow: 0 10px 40px 6px rgba(255, 165, 0, 0.8);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+    user-select:none;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.03em;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel-card:hover {
+    transform: scale(1.12) rotate(3deg);
+    box-shadow: 0 20px 70px 12px #ffb500dd;
+  }
+  .panel-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(255, 195, 0, 0.4), transparent 75%);
+    pointer-events: none;
+    animation: pulseLight 6s ease-in-out infinite;
+    z-index: 0;
+  }
+  @keyframes pulseLight {
+    0%, 100% { transform: rotate(0deg);}
+    50% { transform: rotate(360deg);}
+  }
+  .card-icon {
+    font-size: 80px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 12px #ffb500);
+    animation: pulseGlow 2.5s infinite alternate ease-in-out;
+    position: relative;
+    z-index: 1;
+  }
+  @keyframes pulseGlow {
+    0% {
+      text-shadow: 0 0 15px #ffba08, 0 0 30px #ffa500, 0 0 45px #ff8c00;
+    }
+    100% {
+      text-shadow: 0 0 40px #ffec8b, 0 0 60px #fca500, 0 0 75px #ff7300;
+    }
+  }
+  .card-title {
+    font-size: 36px;
+    font-weight: 900;
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+    color: #ffd600;
+    text-shadow: 1px 1px 12px #ffb600dd;
+    z-index: 1;
+    position: relative;
+  }
+  .card-desc {
+    font-size: 18px;
+    opacity: 0.88;
+    line-height: 1.5;
+    max-width: 520px;
+    margin: 0 auto;
+    color: #fff8cc;
+    z-index: 1;
+    position: relative;
+  }
+
+  .filter-form {
+    max-width: 900px;
+    margin: 30px auto 50px;
+    background: rgba(20, 31, 62, 0.95);
+    border-radius: 20px;
+    padding: 25px 30px;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: 0 10px 42px rgba(255, 194, 15, 0.5);
+    user-select:none;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 185px;
+  }
+  .filter-group label {
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: #ffd643;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 5px #fcb000bb;
+    user-select:none;
+  }
+  .filter-group input {
+    padding: 11px 20px;
+    border-radius: 15px;
+    border: none;
+    font-size: 17px;
+    width: 180px;
+    background: #304770cc;
+    color: #fff;
+    box-shadow: inset 0 0 10px #f8b800bb;
+    transition: background 0.35s ease, box-shadow 0.4s ease;
+    user-select:text;
+  }
+  .filter-group input::placeholder {
+    color: #ffd64faa;
+    font-weight: 500;
+  }
+  .filter-group input:focus {
+    background: #4564a3dd;
+    outline: none;
+    box-shadow: 0 0 18px #ffdb56cc;
+  }
+  .filter-form button {
+    background: linear-gradient(145deg, #ffcd3c 0%, #ffa600 100%);
+    border: none;
+    border-radius: 40px;
+    padding: 16px 42px;
+    color: #222;
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 20px;
+    box-shadow: 0 11px 42px rgba(255, 180, 0, 0.88);
+    transition: background 0.35s ease, transform 0.25s ease;
+    align-self: center;
+    height: 56px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    user-select:none;
+  }
+  .filter-form button:hover {
+    background: linear-gradient(165deg, #ffda48, #ffb200);
+    transform: scale(1.12) rotate(-1deg);
+    box-shadow: 0 14px 53px rgba(255, 180, 0, 0.98);
+  }
+
+  .charts-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+    justify-content: center;
+    max-width: 980px;
+    margin: 20px auto 70px;
+    user-select:none;
+  }
+  canvas {
+    background: linear-gradient(135deg, #272d4a, #1c2136);
+    border-radius: 24px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.8);
+    flex: 1 1 330px;
+    max-width: 330px;
+    height: 330px !important;
+    border: 2.5px solid #ffba08cc;
+    transition: box-shadow 0.35s ease;
+  }
+  canvas:hover {
+    box-shadow: 0 22px 65px rgba(255, 186, 8, 0.95);
+  }
+
+  .export-btn {
+    display: block;
+    margin: 0 auto 60px;
+    padding: 18px 54px;
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(55deg, #ffbf00, #ffaa00, #ff7c00);
+    border: none;
+    border-radius: 42px;
+    color: #222;
+    cursor: pointer;
+    box-shadow: 0 14px 44px rgba(255, 186, 8, 0.96);
+    transition: background-color 0.35s ease, transform 0.3s ease;
+    letter-spacing: 0.09em;
+    user-select: none;
+    text-transform: uppercase;
+    filter: drop-shadow(0 2px 3px #aa7600);
+  }
+  .export-btn:hover {
+    background: linear-gradient(45deg, #ffcd3c, #ff9b00, #ff6e00);
+    transform: scale(1.1) rotate(-1.2deg);
+    box-shadow: 0 18px 50px #ffb701dd;
+  }
+
+  /* Scrollbar for filter form overflow */
+  .filter-form::-webkit-scrollbar {
+    height: 9px;
+    border-radius: 10px;
+    background: transparent;
+  }
+  .filter-form::-webkit-scrollbar-thumb {
+    background: #fbbf21ee;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Аналитика продуктов и пользователей</h1>
+
+<div class="panel-card" onclick="alert('Просмотр аналитики и статистики')" title="Аналитика и статистика" aria-label="Панель аналитики">
+  <div class="card-icon" aria-hidden="true">📊</div>
+  <div class="card-title">Аналитика</div>
+  <div class="card-desc">Статистика по пользователям, продуктам и продажам</div>
+</div>
+
+<button class="export-btn" id="exportPDF" aria-label="Экспорт в PDF">Экспорт в PDF</button>
+
+<div class="charts-grid">
+  <canvas id="stockChart" aria-label="Диаграмма количества в наличии" role="img"></canvas>
+  <canvas id="ratingChart" aria-label="Диаграмма среднего рейтинга" role="img"></canvas>
+  <canvas id="usersChart" aria-label="Диаграмма клиентов (активные и неактивные)" role="img"></canvas>
+</div>
+
+<script>
+  const bookTitlesStock = {{ book_titles_stock|safe }};
+  const stockQuantities = {{ stock_quantities|safe }};
+  const bookTitlesRating = {{ book_titles_rating|safe }};
+  const avgRatings = {{ avg_ratings|safe }};
+  const totalUsers = {{ total_users }};
+  const activeUsers = {{ active_users }};
+  const inactiveUsers = {{ inactive_users }};
+
+  // Stock Quantity Bar Chart
+  const stockChart = new Chart(document.getElementById('stockChart'), {
+    type: 'bar',
+    data: {
+      labels: bookTitlesStock,
+      datasets: [{
+        label: 'Количество в наличии',
+        backgroundColor: 'rgba(255, 186, 8, 0.95)',
+        borderRadius: 18,
+        borderSkipped: false,
+        data: stockQuantities,
+        hoverBackgroundColor: 'rgba(255, 215, 0, 1)',
+        maxBarThickness: 44,
+        barPercentage: 0.7,
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 1600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false, backgroundColor: '#222', titleColor: '#ffbb00', bodyColor: '#ffc' },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {color: '#ffd600', font: {weight: '700', size: 15}},
+          grid: { color: 'rgba(255, 255, 102, 0.25)' }
+        },
+        x: {
+          ticks: {color: '#ffd600', font: {weight: '600', size: 13}, maxRotation: 85, minRotation: 55},
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // Average Rating Line Chart
+  const ratingChart = new Chart(document.getElementById('ratingChart'), {
+    type: 'line',
+    data: {
+      labels: bookTitlesRating,
+      datasets: [{
+        label: 'Средний рейтинг',
+        data: avgRatings,
+        fill: true,
+        backgroundColor: 'rgba(255, 186, 8, 0.3)',
+        borderColor: '#ffd700',
+        pointBackgroundColor: '#ffa500',
+        pointHoverRadius: 16,
+        borderWidth: 4,
+        tension: 0.45,
+        cubicInterpolationMode: 'monotone',
+      }]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'nearest', intersect: false },
+      scales: {
+        y: {
+          min: 0,
+          max: 5,
+          ticks: { color: '#ffe066', font: { size: 14, weight: '600' } },
+          grid: { color: 'rgba(255, 215, 0, 0.22)' }
+        },
+        x: {
+          ticks: { color: '#ffe066', font: { weight: '700', size: 13 } },
+          grid: { color: 'rgba(255, 215, 0, 0.18)' }
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#ffdc59', font: { weight: 'bold', size: 17 } } },
+        tooltip: {
+          enabled: true,
+          mode: 'nearest',
+          intersect: true,
+          backgroundColor: '#222',
+          titleColor: '#ffaf00',
+          bodyColor: '#ffc',
+          callbacks: {
+            label: function(context) {
+              return `Рейтинг: ${context.parsed.y}`;
+            }
+          }
+        }
+      },
+      animation: { duration: 1800, easing: 'easeOutQuart' }
+    }
+  });
+
+  // Users Doughnut Chart
+  const usersChart = new Chart(document.getElementById('usersChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Активные клиенты', 'Неактивные клиенты'],
+      datasets: [{
+        label: 'Клиенты',
+        data: [activeUsers, inactiveUsers],
+        backgroundColor: ['#56c566', '#e74c3c'],
+        hoverOffset: 52,
+        borderWidth: 5,
+        borderColor: '#222',
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '72%',
+      animation: { duration: 1400 },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#f0e26b', font: { weight: '900', size: 18 } } },
+        tooltip: { enabled: true, backgroundColor: '#333', titleColor: '#ffd84a', bodyColor: '#fff' }
+      }
+    }
+  });
+
+  // PDF Export Functionality
+  document.getElementById('exportPDF').onclick = () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('portrait', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+
+    const addChartPage = (image, title, pageIndex) => {
+      if (pageIndex > 0) doc.addPage();
+      let imgWidth = pageWidth - margin * 2;
+      let imgHeight = imgWidth * 0.6;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(20);
+      doc.setTextColor('#ffd700');
+      doc.text(title, pageWidth / 2, margin, { align: 'center' });
+      doc.addImage(image, 'PNG', margin, margin + 40, imgWidth, imgHeight, undefined, 'FAST');
+    };
+
+    Promise.all([
+      stockChart.toBase64Image(),
+      ratingChart.toBase64Image(),
+      usersChart.toBase64Image()
+    ]).then(images => {
+      addChartPage(images[0], 'Количество в наличии', 0);
+      addChartPage(images[1], 'Средний рейтинг', 1);
+      addChartPage(images[2], 'Клиенты (активные / неактивные)', 2);
+      setTimeout(() => doc.save('analytics_report.pdf'), 400);
+    });
+  };
+</script>
+
+</body>
+</html>

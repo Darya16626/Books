@@ -1,483 +1,505 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Каталог книг - BookHaven</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <style>
-        :root {
-            --color-bg-light: #f7f9fc;
-            --color-text-light: #222222;
-            --color-accent: #0074d9;
-            --color-accent-light: #4a90e2;
-            --color-bg-dark: #121c3e;
-            --color-text-dark: #d7e3ff;
-            --color-button-bg: var(--color-accent);
-            --color-button-text: #ffffff;
-            --border-radius: 12px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            --shadow-light: rgba(0, 116, 217, 0.3);
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Каталог книг - BookHaven</title>
 
-        body {
-            font-family: var(--font-family);
-            background-color: var(--color-bg-light);
-            color: var(--color-text-light);
-            margin: 0; 
-            padding: 30px 20px;
-            transition: background-color 0.4s, color 0.4s;
-            user-select: none;
-        }
+<!-- Подключение шрифта Cinzel Decorative с поддержкой кириллицы -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap&subset=cyrillic" rel="stylesheet" />
 
-        body.dark-theme {
-            background-color: var(--color-bg-dark);
-            color: var(--color-text-dark);
-        }
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: #e6f0ff;
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            max-width: 980px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+    --font-family: 'Cinzel Decorative', serif;
 
-        h1 {
-            font-size: 2.4rem;
-            color: var(--color-accent);
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            user-select: text;
-            margin: 0;
-        }
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
 
-        .btn-back-to-main {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
-            background-color: var(--color-accent);
-            color: var(--color-button-text);
-            font-size: 1.1rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            user-select: none;
-            text-decoration: none;
-            user-select: none;
-            box-shadow: 0 4px 12px var(--shadow-light);
-        }
+body.dark-theme {
+    --color-bg: var(--color-bg-dark);
+    --color-text: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
+}
+body:not(.dark-theme) {
+    --color-bg: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-text: var(--color-text-light);
+    --btn-shadow: 0 5px 15px rgba(0,102,255,0.4);
+    --card-shadow: var(--card-shadow-light);
+}
 
-        .btn-back-to-main:hover,
-        .btn-back-to-main:focus {
-            background-color: #0557aa;
-            outline: none;
-            box-shadow: 0 6px 18px rgba(0,87,170,0.7);
-        }
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
 
-        /* ==== Карусель акций ==== */
-        .carousel-container {
-            max-width: 980px;
-            margin: 0 auto 50px;
-            position: relative;
-        }
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
 
-        .carousel-wrapper {
-            overflow: hidden;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,116,217,0.1);
-            background: var(--color-button-text);
-            transition: background-color 0.4s;
-        }
+.main-wrapper {
+    width: 100%;
+    max-width: 980px;
+    margin-bottom: 30px;
+    padding: 25px 40px;
+    border-radius: var(--border-radius);
+    background: rgba(255 255 255 / 0.85);
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    z-index: 10;
+    transition: background 0.4s, box-shadow 0.4s;
+}
+body.dark-theme .main-wrapper {
+    background: rgba(30 30 47 / 0.85);
+}
 
-        body.dark-theme .carousel-wrapper {
-            background: #1b2a5a;
-            box-shadow: 0 8px 26px rgba(0,116,217,0.6);
-        }
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+h1 {
+    font-family: var(--font-family);
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    letter-spacing: 1.2px;
+    user-select: text;
+    margin: 0 0 10px 0;
+    transition: color 0.4s;
+}
+body.dark-theme h1 {
+    color: #80b4ff;
+}
 
-        .carousel-track {
-            display: flex;
-            transition: transform 0.5s ease;
-            will-change: transform;
-        }
+.btn-back-to-main {
+    display: inline-block;
+    padding: var(--btn-padding);
+    background-color: var(--color-accent);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: var(--border-radius);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,102,204,0.4);
+    user-select: none;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+.btn-back-to-main:hover,
+.btn-back-to-main:focus {
+    background-color: #004a99;
+    outline: none;
+    box-shadow: 0 6px 18px rgba(0,77,153,0.7);
+}
 
-        .promotion-card {
-            flex: 0 0 280px;
-            margin: 20px;
-            border-radius: 15px;
-            background: var(--color-button-text);
-            box-shadow: 0 5px 15px rgba(0,116,217,0.15);
-            text-decoration: none;
-            color: #004080;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-            user-select: none;
-        }
+.carousel-container {
+    max-width: 980px;
+    margin: 0 auto 50px;
+    position: relative;
+}
+.carousel-wrapper {
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: var(--card-shadow-light);
+    background: #fff;
+    transition: background-color 0.4s;
+}
+body.dark-theme .carousel-wrapper {
+    background: #1b2a5a;
+    box-shadow: var(--card-shadow-dark);
+}
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+.promotion-card {
+    flex: 0 0 280px;
+    margin: 20px;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,116,217,0.15);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    user-select: none;
+    color: #004080;
+}
+body.dark-theme .promotion-card {
+    background: #22345a;
+    color: #a7c1ff;
+    box-shadow: 0 5px 20px rgba(0,116,217,0.6);
+}
+.promotion-card:hover,
+.promotion-card:focus-visible {
+    box-shadow: 0 12px 35px rgba(0,116,217,0.4);
+    transform: translateY(-6px);
+    outline: none;
+}
+.promotion-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-bottom: 3px solid var(--color-accent);
+    background: #e3efff;
+    transition: background-color 0.4s;
+}
+body.dark-theme .promotion-image {
+    background: #15294d;
+}
+.promotion-content {
+    padding: 18px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.promotion-title {
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: text;
+}
+.promotion-description {
+    color: #555;
+    font-size: 0.95rem;
+    flex-grow: 1;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+body.dark-theme .promotion-description {
+    color: #b0befd;
+}
+.promotion-discount {
+    color: #d63031;
+    font-size: 1.2rem;
+    font-weight: 700;
+    user-select: none;
+}
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.2);
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.3s ease;
+    user-select: none;
+}
+.carousel-btn:hover,
+.carousel-btn:focus {
+    background: rgba(0,116,217,0.8);
+    outline: none;
+}
+.carousel-btn.prev {
+    left: 0;
+}
+.carousel-btn.next {
+    right: 0;
+}
 
-        body.dark-theme .promotion-card {
-            background: #22345a;
-            color: #a7c1ff;
-            box-shadow: 0 5px 20px rgba(0,116,217,0.6);
-        }
+.search-bar {
+    max-width: 960px;
+    margin: 0 auto 60px;
+    padding: 0 10px;
+    display: none;
+}
+.search-bar.show {
+    display: block;
+}
+.search-bar form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+}
+.search-bar input[type="text"],
+.search-bar select,
+.search-bar input[type="number"] {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1.5px solid #bbb;
+    font-size: 1rem;
+    width: 220px;
+    max-width: 100%;
+    transition: border-color 0.3s ease;
+    color: var(--color-text-light);
+    background: #fff;
+    user-select: text;
+    box-sizing: border-box;
+}
+body.dark-theme .search-bar input[type="text"],
+body.dark-theme .search-bar select,
+body.dark-theme .search-bar input[type="number"] {
+    border-color: #34599a;
+    background: #1a2a5a;
+    color: var(--color-text-dark);
+}
+.search-bar input[type="text"]:focus,
+.search-bar select:focus,
+.search-bar input[type="number"]:focus {
+    border-color: var(--color-accent);
+    outline: none;
+    box-shadow: 0 0 8px rgba(0,116,217,0.6);
+    background: #fff;
+    color: var(--color-text-light);
+}
+body.dark-theme .search-bar input[type="text"]:focus,
+body.dark-theme .search-bar select:focus,
+body.dark-theme .search-bar input[type="number"]:focus {
+    background: #2a3a72;
+    color: var(--color-text-dark);
+}
+.search-bar button {
+    background-color: var(--color-accent);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    padding: 13px 32px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+    user-select: none;
+    box-shadow: 0 4px 15px rgba(0,116,217,0.4);
+}
+.search-bar button:hover,
+.search-bar button:focus {
+    background-color: #0557aa;
+    outline: none;
+    box-shadow: 0 6px 22px rgba(0,87,170,0.7);
+}
 
-        .promotion-card:hover,
-        .promotion-card:focus-visible {
-            box-shadow: 0 12px 35px rgba(0,116,217,0.4);
-            transform: translateY(-6px);
-            outline: none;
-        }
+.books-grid {
+    max-width: 980px;
+    margin: 0 auto 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+    gap: 32px;
+    padding: 0 10px;
+}
+.book-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: var(--card-shadow-light);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border: 1px solid transparent;
+    user-select: none;
+    color: inherit;
+}
+body.dark-theme .book-card {
+    background: var(--color-bg-dark);
+    box-shadow: var(--card-shadow-dark);
+    border-color: transparent;
+    color: var(--color-text-dark);
+}
+.book-card:hover,
+.book-card:focus-within {
+    box-shadow: 0 20px 50px rgba(0,116,217,0.35);
+    transform: translateY(-8px);
+    border-color: var(--color-accent);
+    outline: none;
+}
+.book-image {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background: #f8fafd;
+    border-bottom: 1.5px solid var(--color-accent);
+    transition: background-color 0.3s ease;
+}
+body.dark-theme .book-image {
+    background: #1e2f58;
+    border-color: #34599a;
+}
+.book-content {
+    padding: 22px 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: inherit;
+}
+.book-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0 0 8px 0;
+    color: var(--color-accent);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: text;
+    transition: color 0.3s ease;
+}
+body.dark-theme .book-title {
+    color: #a7c1ff;
+}
+.book-title:hover,
+.book-title:focus {
+    text-decoration: underline;
+    outline: none;
+}
+.book-author {
+    font-style: italic;
+    color: #555;
+    margin: 0 0 14px 0;
+    font-size: 0.95rem;
+}
+body.dark-theme .book-author {
+    color: #aac6ff;
+}
+.book-price {
+    font-weight: 700;
+    color: var(--color-accent);
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+    user-select: none;
+}
+.book-old-price {
+    color: #999;
+    font-size: 1.1rem;
+    text-decoration: line-through;
+    margin-right: 12px;
+    font-weight: 500;
+    user-select: none;
+}
+body.dark-theme .book-old-price {
+    color: #7a8cba;
+}
+.book-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.book-actions form button {
+    padding: 11px 28px;
+    border: none;
+    background-color: var(--color-accent);
+    color: #fff;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 3px 10px rgba(0,116,217,0.45);
+    user-select: none;
+    min-width: 140px;
+    white-space: nowrap;
+}
+.book-actions form button:hover,
+.book-actions form button:focus {
+    background-color: #004a99;
+    transform: translateY(-3px);
+    outline: none;
+    box-shadow: 0 6px 18px rgba(0,77,153,0.7);
+}
+@media (max-width: 700px) {
+    .books-grid {
+        grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    }
+    .book-actions form button {
+        min-width: 100%;
+    }
+}
 
-        .promotion-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-bottom: 3px solid var(--color-accent);
-            background: #e3efff;
-            transition: background-color 0.4s;
-        }
+#hotkey-tooltip {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #27ae60;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    z-index: 1000;
+    font-weight: bold;
+    user-select: none;
+}
 
-        body.dark-theme .promotion-image {
-            background: #15294d;
-        }
-
-        .promotion-content {
-            padding: 18px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .promotion-title {
-            font-weight: 700;
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            user-select: text;
-        }
-
-        .promotion-description {
-            color: #555;
-            font-size: 0.95rem;
-            flex-grow: 1;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-
-        body.dark-theme .promotion-description {
-            color: #b0befd;
-        }
-
-        .promotion-discount {
-            color: #d63031;
-            font-size: 1.2rem;
-            font-weight: 700;
-            user-select: none;
-        }
-
-        /* Кнопки управления каруселью */
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0,0,0,0.2);
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            z-index: 10;
-            transition: background 0.3s ease;
-            user-select: none;
-        }
-
-        .carousel-btn:hover,
-        .carousel-btn:focus {
-            background: rgba(0,116,217,0.8);
-            outline: none;
-        }
-
-        .carousel-btn.prev {
-            left: 0;
-        }
-
-        .carousel-btn.next {
-            right: 0;
-        }
-
-        /* ==== Поиск и фильтры ==== */
-        .search-bar {
-            max-width: 960px;
-            margin: 0 auto 60px;
-            padding: 0 10px;
-        }
-
-        .search-bar form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .search-bar input[type="text"],
-        .search-bar select,
-        .search-bar input[type="number"] {
-            padding: 12px 16px;
-            border-radius: 10px;
-            border: 1.5px solid #bbb;
-            font-size: 1rem;
-            width: 220px;
-            max-width: 100%;
-            transition: border-color 0.3s ease;
-            color: var(--color-text-light);
-            background: var(--color-button-text);
-            user-select: text;
-            box-sizing: border-box;
-        }
-
-        body.dark-theme .search-bar input[type="text"],
-        body.dark-theme .search-bar select,
-        body.dark-theme .search-bar input[type="number"] {
-            border-color: #34599a;
-            background: #1a2a5a;
-            color: var(--color-text-dark);
-        }
-
-        .search-bar input[type="text"]:focus,
-        .search-bar select:focus,
-        .search-bar input[type="number"]:focus {
-            border-color: var(--color-accent);
-            outline: none;
-            box-shadow: 0 0 8px rgba(0,116,217,0.6);
-            background: var(--color-button-text);
-            color: var(--color-text-light);
-        }
-
-        body.dark-theme .search-bar input[type="text"]:focus,
-        body.dark-theme .search-bar select:focus,
-        body.dark-theme .search-bar input[type="number"]:focus {
-            background: #2a3a72;
-            color: var(--color-text-dark);
-        }
-
-        /* Новый фильтр по рейтингу */
-        .search-bar select[name="min_rating"] {
-            width: 140px;
-        }
-
-        .search-bar button {
-            background-color: var(--color-accent);
-            border: none;
-            border-radius: 10px;
-            color: var(--color-button-text);
-            font-weight: 700;
-            padding: 13px 32px;
-            font-size: 1.05rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            white-space: nowrap;
-            user-select: none;
-            box-shadow: 0 4px 15px rgba(0,116,217,0.4);
-        }
-
-        .search-bar button:hover,
-        .search-bar button:focus {
-            background-color: #0557aa;
-            outline: none;
-            box-shadow: 0 6px 22px rgba(0,87,170,0.7);
-        }
-
-        /* ==== Сетка книг ==== */
-        .books-grid {
-            max-width: 980px;
-            margin: 0 auto 60px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 32px;
-            padding: 0 10px;
-        }
-
-        .book-card {
-            background: var(--color-button-text);
-            border-radius: 20px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.07);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-            cursor: pointer;
-            border: 1px solid transparent;
-            user-select: none;
-        }
-
-        body.dark-theme .book-card {
-            background: #152a5b;
-            box-shadow: 0 15px 45px rgba(0,116,217,0.5);
-            border-color: transparent;
-            color: #c7d3ff;
-        }
-
-        .book-card:hover,
-        .book-card:focus-within {
-            box-shadow: 0 20px 50px rgba(0,116,217,0.35);
-            transform: translateY(-8px);
-            border-color: var(--color-accent);
-            outline: none;
-        }
-
-        .book-image {
-            width: 100%;
-            height: 200px;
-            object-fit: contain;
-            background: #f8fafd;
-            border-bottom: 1.5px solid #ddd;
-            transition: background-color 0.3s ease;
-        }
-
-        body.dark-theme .book-image {
-            background: #1e2f58;
-            border-color: #34599a;
-        }
-
-        .book-content {
-            padding: 22px 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            color: inherit;
-        }
-
-        .book-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin: 0 0 8px 0;
-            color: #004080;
-            text-decoration: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            user-select: text;
-            transition: color 0.3s ease;
-        }
-
-        body.dark-theme .book-title {
-            color: #a7c1ff;
-        }
-
-        .book-author {
-            font-style: italic;
-            color: #666;
-            margin: 0 0 14px 0;
-            font-size: 0.95rem;
-        }
-
-        body.dark-theme .book-author {
-            color: #aac6ff;
-        }
-
-        .book-price {
-            font-weight: 700;
-            color: var(--color-accent);
-            font-size: 1.3rem;
-            margin-bottom: 18px;
-            user-select: none;
-        }
-
-        .book-old-price {
-            color: #999;
-            font-size: 1.1rem;
-            text-decoration: line-through;
-            margin-right: 12px;
-            font-weight: 500;
-            user-select: none;
-        }
-
-        body.dark-theme .book-old-price {
-            color: #7a8cba;
-        }
-
-        .book-actions {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .book-actions form button {
-            padding: 11px 28px;
-            border: none;
-            background-color: var(--color-accent);
-            color: var(--color-button-text);
-            border-radius: 14px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 3px 10px rgba(0,116,217,0.45);
-            user-select: none;
-            min-width: 140px;
-            white-space: nowrap;
-        }
-
-        .book-actions form button:hover,
-        .book-actions form button:focus {
-            background-color: #0557aa;
-            transform: translateY(-3px);
-            outline: none;
-            box-shadow: 0 6px 18px rgba(0,87,170,0.7);
-        }
-
-        /* Адаптивность */
-        @media (max-width: 700px) {
-            .promotion-card {
-                flex: 0 0 220px;
-                margin: 15px;
-            }
-            .search-bar input[type="text"],
-            .search-bar select,
-            .search-bar input[type="number"] {
-                width: 100%;
-                max-width: 100%;
-            }
-            .search-bar form {
-                flex-direction: column;
-            }
-            .book-actions {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .book-actions form button {
-                width: 100%;
-            }
-            .search-bar select[name="min_rating"] {
-                width: 100%;
-            }
-        }
-    </style>
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--color-accent);
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0,102,204,0.5);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+    z-index: 1001;
+}
+.theme-toggle:hover {
+    background-color: #004d99;
+}
+</style>
 </head>
 <body>
-    <header>
-        <h1>Каталог книг - BookHaven</h1>
-        <a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную страницу">← Вернуться на главную</a>
-        <button class="theme-toggle" type="button" aria-label="Переключить тему" style="position: absolute; top: 30px; right: 20px; background: var(--color-accent); color: var(--color-button-text); border: none; border-radius: 20px; padding: 8px 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px var(--shadow-light); transition: background-color 0.3s;">Тёмная / Светлая тема</button>
-    </header>
+
+<header>
+    <h1>Каталог книг - BookHaven</h1>
+    <a href="{% url 'client_page' %}" class="btn-back-to-main" role="button" aria-label="Вернуться на главную">← Вернуться на главную</a>
+    <button class="theme-toggle" type="button" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
+</header>
+
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<div class="main-wrapper" role="main" aria-label="Каталог книг BookHaven">
 
     {% if promotions %}
-    <section aria-label="Акционные предложения" class="carousel-container" role="region" aria-roledescription="carousel" aria-label="Акции магазина">
+    <section class="carousel-container" role="region" aria-roledescription="carousel" aria-label="Акции магазина">
         <button class="carousel-btn prev" aria-label="Предыдущая акция" tabindex="0">❮</button>
         <div class="carousel-wrapper">
             <div class="carousel-track" id="carousel-track">
@@ -501,21 +523,28 @@
     </section>
     {% endif %}
 
-    <div class="search-bar">
-        <form method="get" aria-label="Форма поиска">
-            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Поиск по названию или артикулу" aria-label="Поиск по названию или артикулу" />
+    <section class="search-bar" aria-label="Поиск и фильтры" id="search-bar-section">
+        <form method="get" aria-label="Форма поиска и фильтрации">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Поиск по названию, артикулу или ISBN" aria-label="Поиск по названию, артикулу или ISBN" />
             <select name="genre" aria-label="Выбор жанра">
                 <option value="">Все жанры</option>
                 {% for g in genres %}
-                <option value="{{ g }}" {% if g == request.GET.genre %}selected{% endif %}>{{ g }}</option>
+                    <option value="{{ g }}" {% if g == request.GET.genre %}selected{% endif %}>{{ g }}</option>
                 {% endfor %}
             </select>
             <select name="author" aria-label="Выбор автора">
                 <option value="">Все авторы</option>
                 {% for a in authors %}
-                <option value="{{ a }}" {% if a == request.GET.author %}selected{% endif %}>{{ a }}</option>
+                    <option value="{{ a }}" {% if a == request.GET.author %}selected{% endif %}>{{ a }}</option>
                 {% endfor %}
             </select>
+            <select name="language" aria-label="Выбор языка">
+                <option value="">Все языки</option>
+                {% for code, lang in language_choices %}
+                    <option value="{{ code }}" {% if code == request.GET.language %}selected{% endif %}>{{ lang }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="year_created" value="{{ request.GET.year_created }}" placeholder="Год создания книги" aria-label="Год создания книги" min="0" style="width:150px" />
             <select name="min_rating" aria-label="Минимальный рейтинг">
                 <option value="">Любой рейтинг</option>
                 <option value="5" {% if request.GET.min_rating == '5' %}selected{% endif %}>5 звезд</option>
@@ -527,9 +556,9 @@
             <input type="number" step="0.01" name="max_price" value="{{ request.GET.max_price }}" placeholder="Максимальная цена" aria-label="Максимальная цена" style="width:130px;" />
             <button type="submit" aria-label="Применить фильтр поиска">Поиск</button>
         </form>
-    </div>
+    </section>
 
-    <div class="books-grid" role="list" aria-label="Список книг">
+    <section class="books-grid" role="list" aria-label="Список книг">
         {% if books %}
             {% for book in books %}
             <div class="book-card" role="listitem" tabindex="0" aria-label="Книга {{ book.title }} автора {{ book.author }}">
@@ -543,6 +572,8 @@
                 <div class="book-content">
                     <a href="{% url 'clients_book_detail' book.id %}" class="book-title" tabindex="-1" title="{{ book.title }}">{{ book.title }}</a>
                     <p class="book-author">Автор: {{ book.author }}</p>
+                    <p><strong>Язык:</strong> {{ book.language|default:"не указан" }}</p>
+                    <p><strong>Год создания:</strong> {{ book.year_created|default:"не указан" }}</p>
                     <div class="book-price">
                         {% if book.original_price and book.price != book.original_price %}
                             <span class="book-old-price">{{ book.original_price }} ₽</span>
@@ -567,67 +598,246 @@
         {% else %}
             <p style="text-align:center; font-size:1.2rem; color:#666; margin-top: 60px;">Книги не найдены по заданным параметрам.</p>
         {% endif %}
-    </div>
+    </section>
 
-    <script>
-        (() => {
-            const track = document.getElementById('carousel-track');
-            if (!track) return;
+</div>
 
-            const prevBtn = document.querySelector('.carousel-btn.prev');
-            const nextBtn = document.querySelector('.carousel-btn.next');
-            const slideWidth = 320;
-            let currentIndex = 0;
-            const slidesCount = track.children.length;
+<div id="hotkey-tooltip" role="tooltip" aria-live="polite" aria-atomic="true">Используйте Ctrl+Shift+F для открытия поиска и фильтров.</div>
 
-            function updateCarousel() {
-                const offset = -currentIndex * slideWidth;
-                track.style.transform = `translateX(${offset}px)`;
-            }
-            function nextSlide() {
-                currentIndex++;
-                if (currentIndex >= slidesCount) {
-                    currentIndex = 0;
-                }
-                updateCarousel();
-            }
-            function prevSlide() {
-                currentIndex--;
-                if (currentIndex < 0) {
-                    currentIndex = slidesCount - 1;
-                }
-                updateCarousel();
-            }
-            prevBtn.addEventListener('click', prevSlide);
-            nextBtn.addEventListener('click', nextSlide);
+<script>
+// Космический фон и одна и та же логика анимации для "Админ - Настройка Дизайна"
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
 
-            let autoScroll = setInterval(nextSlide, 4000);
-            const carouselWrapper = document.querySelector('.carousel-wrapper');
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+function isDarkTheme() { return document.body.classList.contains('dark-theme'); }
+class Star {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if (this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255, 255, 255, 0.7)'
+            : 'rgba(100, 170, 255, 0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+class Comet {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random();
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength * 0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(100, 170, 255, ${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255, 255, 255, 0.9)'
+            : 'rgba(100, 170, 255, 0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength * 0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength * 0.5 + this.tailWidth * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255, 255, 255, ${this.alpha})`
+            : `rgba(100, 170, 255, ${this.alpha})`;
+        ctx.shadowColor = isDarkTheme()
+            ? 'rgba(255, 255, 255, 1)'
+            : 'rgba(100, 170, 255, 1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
 
-            carouselWrapper.addEventListener('mouseenter', () => clearInterval(autoScroll));
-            carouselWrapper.addEventListener('mouseleave', () => {
-                autoScroll = setInterval(nextSlide, 4000);
-            });
+const stars = [];
+const TOTAL_STARS = 180;
+for (let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
 
-            // Theme toggle button
-            const themeToggleBtn = document.querySelector('.theme-toggle');
-            themeToggleBtn.addEventListener('click', toggleTheme);
+const comets = [];
+const TOTAL_COMETS = 3;
+for (let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
 
-            function toggleTheme() {
-                document.body.classList.toggle('dark-theme');
-                if (document.body.classList.contains('dark-theme')) {
-                    localStorage.setItem('theme', 'dark');
+const constellationPoints = [
+    { x: 0.2 * width, y: 0.2 * height },
+    { x: 0.4 * width, y: 0.25 * height },
+    { x: 0.6 * width, y: 0.15 * height },
+    { x: 0.75 * width, y: 0.35 * height },
+    { x: 0.85 * width, y: 0.2 * height },
+    { x: 0.3 * width, y: 0.7 * height },
+    { x: 0.5 * width, y: 0.8 * height },
+    { x: 0.7 * width, y: 0.75 * height },
+    { x: 0.9 * width, y: 0.85 * height },
+];
+
+const constellationLines = [
+    [0, 1], [1, 2], [2, 4],
+    [0, 3], [3, 4],
+    [5, 6], [6, 7], [7, 8]
+];
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme()
+            ? 'drop-shadow(0 0 4px #ffa6ba)'
+            : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = { x: 0, y: 0 };
+let direction = 1;
+function animate() {
+    ctx.clearRect(0, 0, width, height);
+    stars.forEach(star => { star.update(); star.draw(); });
+    comets.forEach(comet => { comet.update(); comet.draw(); });
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction *= -1;
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+</script>
+
+<script>
+    // Переключение темы и сохранение в localStorage
+    document.querySelector('.theme-toggle').addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        if(document.body.classList.contains('dark-theme')){
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if(localStorage.getItem('theme') === 'dark'){
+            document.body.classList.add('dark-theme');
+        }
+    });
+
+    // Горячая клавиша Ctrl+Shift+F для показа/скрытия поиска и фильтров
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltip = document.getElementById('hotkey-tooltip');
+        tooltip.style.display = 'block';
+        setTimeout(() => { tooltip.style.display = 'none'; }, 8000);
+
+        const searchBarSection = document.getElementById('search-bar-section');
+
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.shiftKey && event.code === 'KeyF') {
+                event.preventDefault();
+                if (searchBarSection.classList.contains('show')) {
+                    searchBarSection.classList.remove('show');
                 } else {
-                    localStorage.setItem('theme', 'light');
+                    searchBarSection.classList.add('show');
+                    const searchInput = searchBarSection.querySelector('input[name="q"]');
+                    if (searchInput) {
+                        searchInput.focus();
+                        const val = searchInput.value;
+                        searchInput.value = '';
+                        searchInput.value = val;
+                    }
                 }
             }
+        });
+    });
+</script>
 
-            window.onload = function () {
-                if (localStorage.getItem('theme') === 'dark') {
-                    document.body.classList.add('dark-theme');
-                }
-            };
-        })();
-    </script>
 </body>
 </html>

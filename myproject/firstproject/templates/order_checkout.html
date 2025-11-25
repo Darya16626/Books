@@ -1,0 +1,572 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Оформление заказа - BookHaven</title>
+
+<!-- Google Fonts с кириллицей -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap&subset=cyrillic" rel="stylesheet" />
+
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: #e6f0ff;
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+
+    --font-family: 'Cinzel Decorative', serif;
+
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+body.dark-theme {
+    --color-bg: var(--color-bg-dark);
+    --color-text: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
+}
+body:not(.dark-theme) {
+    --color-bg: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-text: var(--color-text-light);
+    --btn-shadow: 0 5px 15px rgba(0,102,255,0.4);
+    --card-shadow: var(--card-shadow-light);
+}
+
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Canvas and SVG cosmic background */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+/* Content wrapper */
+.main-wrapper {
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 30px;
+    padding: 25px 35px;
+    border-radius: var(--border-radius);
+    background: rgba(255 255 255 / 0.85);
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    z-index: 10;
+    transition: background 0.4s, box-shadow 0.4s;
+}
+body.dark-theme .main-wrapper {
+    background: rgba(30 30 47 / 0.85);
+}
+
+/* Headings */
+h1, h2 {
+    font-family: var(--font-family);
+    text-align: center;
+    color: var(--color-accent);
+    margin-bottom: 30px;
+    font-weight: 600;
+    transition: color 0.4s;
+}
+body.dark-theme h1, body.dark-theme h2 {
+    color: #80b4ff;
+}
+
+/* Products grid */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.product-card {
+    background: #f0f8ff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow-light);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    transition: background-color 0.4s, box-shadow 0.4s;
+}
+body.dark-theme .product-card {
+    background: #2b2c4a;
+    box-shadow: var(--card-shadow-dark);
+}
+.product-image-wrapper {
+    height: 150px;
+    background: #ddd;
+    border-radius: var(--border-radius);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.product-image-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: var(--border-radius);
+}
+.product-no-image {
+    color: #777;
+    font-size: 14px;
+}
+.product-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.product-title {
+    font-weight: 700;
+    color: var(--color-accent);
+    font-family: var(--font-family);
+    margin-bottom: 4px;
+    text-decoration: none;
+    word-break: break-word;
+}
+.product-title:hover {
+    text-decoration: underline;
+}
+.product-author {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    color: #555;
+}
+.product-price {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: auto;
+}
+
+/* Order form */
+.order-form-container {
+    background: #f0f8ff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow-light);
+    max-width: 700px;
+    margin: 0 auto 30px;
+    padding: 25px 30px;
+    transition: background-color 0.4s;
+}
+body.dark-theme .order-form-container {
+    background: #2a2a40;
+    box-shadow: var(--card-shadow-dark);
+}
+
+h2 {
+    margin-bottom: 25px;
+    font-family: var(--font-family);
+    color: var(--color-accent);
+    text-align: center;
+}
+
+/* Radio payment methods */
+.payment-methods {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-bottom: 20px;
+}
+.payment-methods label {
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    color: var(--color-text);
+}
+body.dark-theme .payment-methods label {
+    color: var(--color-text-dark);
+}
+
+textarea#delivery_address {
+    width: 100%;
+    border-radius: var(--border-radius);
+    border: 2px solid #99c2ff;
+    padding: 15px 18px;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 80px;
+    font-family: var(--font-family);
+    transition: border-color 0.3s;
+}
+textarea#delivery_address:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* Save and checkout button */
+.btn-save-address {
+    background-color: var(--color-accent);
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: var(--btn-padding);
+    font-size: var(--btn-font-size);
+    cursor: pointer;
+    box-shadow: var(--btn-shadow);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    display: block;
+    margin: 20px auto 0 auto;
+    user-select: none;
+}
+.btn-save-address:hover {
+    background-color: #004a99;
+    box-shadow: 0 7px 25px rgba(0,66,134,0.7);
+}
+
+/* Balance and order total */
+.balance-container {
+    max-width: 700px;
+    margin: 20px auto;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+    color: var(--color-accent);
+}
+.order-total {
+    max-width: 700px;
+    margin: 10px auto 30px;
+    font-weight: 700;
+    font-size: 1.4rem;
+    text-align: center;
+    color: var(--color-accent);
+}
+
+/* Empty cart message */
+.empty-cart {
+    max-width: 700px;
+    margin: 40px auto;
+    font-size: 1.1rem;
+    color: #666;
+    text-align: center;
+}
+
+/* Back link */
+a.back-button {
+    margin-top: 20px;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+    user-select: none;
+    display: inline-block;
+    font-family: var(--font-family);
+}
+a.back-button:hover {
+    color: #004a99;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Оформление заказа</h1>
+</header>
+
+<!-- Cosmic animated background -->
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+
+<div class="main-wrapper" role="main" aria-label="Оформление заказа - BookHaven">
+
+    {% if cart_items %}
+    <section class="products-grid" aria-label="Список товаров для оформления заказа">
+        {% for item in cart_items %}
+            <div class="product-card" tabindex="0" aria-label="Книга {{ item.book.title }}, автор {{ item.book.author }}, цена {{ item.book.price|floatformat:2 }} рублей, количество {{ item.quantity }}">
+                <div class="product-image-wrapper">
+                    {% with item.book.get_image_list|first as image %}
+                        {% if image %}
+                            <img src="{{ image }}" alt="{{ item.book.title }}" loading="lazy" />
+                        {% else %}
+                            <div class="product-no-image">Нет изображения</div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="product-info">
+                    <a href="{% url 'clients_book_detail' item.book.id %}" class="product-title">{{ item.book.title }}</a>
+                    <p class="product-author">Автор: {{ item.book.author }}</p>
+                    <p class="product-price">{{ item.book.price|floatformat:2 }} ₽ × {{ item.quantity }} = <strong>{{ item.get_total_price|floatformat:2 }} ₽</strong></p>
+                </div>
+            </div>
+        {% endfor %}
+    </section>
+
+    <section class="order-form-container" aria-label="Форма оформления заказа">
+        <h2>Данные для заказа</h2>
+        <form method="post" action="{% url 'order_checkout' %}">
+            {% csrf_token %}
+            <div class="payment-methods">
+                <label>
+                    <input type="radio" name="payment_method" value="cash" required {% if request.POST.payment_method == 'cash' %}checked{% endif %}/> Наличные
+                </label>
+                <label>
+                    <input type="radio" name="payment_method" value="card" {% if request.POST.payment_method == 'card' %}checked{% endif %}/> Карта
+                </label>
+            </div>
+
+            <label for="delivery_address">Адрес доставки</label>
+            <textarea id="delivery_address" name="delivery_address" rows="3" placeholder="Введите адрес доставки" required>{{ saved_address }}</textarea>
+
+            <button type="submit" class="btn-save-address">Сохранить и оформить заказ</button>
+        </form>
+    </section>
+
+    <div class="balance-container">
+        Текущий баланс: <span id="current-balance">{{ balance_amount|floatformat:2 }} ₽</span>
+    </div>
+
+    <p class="order-total">
+        Итоговая сумма: <strong>{{ total_price|floatformat:2 }} ₽</strong>
+    </p>
+
+    {% else %}
+        <p class="empty-cart">Ваша корзина пуста.</p>
+    {% endif %}
+
+    <a href="{% url 'client_page' %}" class="back-button" role="button" aria-label="Вернуться на главную">← Назад</a>
+</div>
+
+<script>
+// Cosmic background animation logic is the same as "Админ - Настройка Дизайна" page
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+});
+
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+class Star {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if(this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >= 1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x < 0) this.x = width;
+        if(this.x > width) this.x = 0;
+        if(this.y < 0) this.y = height;
+        if(this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme() ? `rgba(255, 255, 255, ${this.alpha})` : `rgba(30, 115, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,0.7)' : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Comet {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random() * 1;
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+        gradient.addColorStop(0, isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(100,170,255,${this.alpha*0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,0.9)' : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.tailLength, this.y - this.tailLength*0.5);
+        ctx.lineTo(this.x - this.tailLength + this.tailWidth, this.y - this.tailLength*0.5 + this.tailWidth*0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,1)' : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i = 0; i < TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i = 0; i < TOTAL_COMETS; i++) comets.push(new Comet());
+
+const constellationPoints = [
+    {x: 0.2 * width, y: 0.2 * height},
+    {x: 0.4 * width, y: 0.25 * height},
+    {x: 0.6 * width, y: 0.15 * height},
+    {x: 0.75 * width, y: 0.35 * height},
+    {x: 0.85 * width, y: 0.2 * height},
+    {x: 0.3 * width, y: 0.7 * height},
+    {x: 0.5 * width, y: 0.8 * height},
+    {x: 0.7 * width, y: 0.75 * height},
+    {x: 0.9 * width, y: 0.85 * height},
+];
+const constellationLines = [
+    [0, 1], [1, 2], [2, 4], [0, 3], [3, 4], [5, 6], [6, 7], [7, 8]
+];
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    constellationPoints.forEach((point, i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme() ? 'drop-shadow(0 0 4px #ffa6ba)' : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+    constellationLines.forEach(line => {
+        const [startIdx, endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme() ? 'drop-shadow(0 0 4px #ffa6ba)' : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = {x:0,y:0};
+let direction = 1;
+function animate() {
+    ctx.clearRect(0,0,width,height);
+    stars.forEach(star => { star.update(); star.draw(); });
+    comets.forEach(comet => { comet.update(); comet.draw(); });
+    constellationOffset.x += 0.02 * direction;
+    if (Math.abs(constellationOffset.x) > 10) direction *= -1;
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+    constellationSVG.querySelectorAll('circle').forEach((circle, i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline, i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    const mainWrapper = document.querySelector('.main-wrapper');
+    if (mainWrapper) {
+        mainWrapper.style.borderRadius = borderRadius;
+        mainWrapper.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+    }
+
+    createConstellation();
+
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+});
+</script>
+
+</body>
+</html>

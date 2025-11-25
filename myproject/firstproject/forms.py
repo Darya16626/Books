@@ -11,9 +11,153 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import authenticate
 from decimal import Decimal
+from .models import Card
+from django.contrib.auth.models import User
+from .models import Book
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from .models import Order, OrderItem, Book
+
+class OrderItemForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ['book', 'quantity']
+
+    def clean_quantity(self):
+        qty = self.cleaned_data.get('quantity')
+        book = self.cleaned_data.get('book')
+
+        if book and qty > book.stock_quantity:
+            raise forms.ValidationError(f"Количество товара '{book.title}' не может превышать количество на складе ({book.stock_quantity}).")
+        return qty
+
+class OrderForm(forms.ModelForm):
+    user = forms.ModelChoiceField(
+        queryset=User.objects.filter(profile__role='client'),  # только клиенты
+        label="Клиент"
+    )
+
+    class Meta:
+        model = Order
+        fields = ['user', 'delivery_address', 'payment_method']
+        widgets = {
+            'payment_method': forms.RadioSelect,
+            'delivery_address': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class OrderItemForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ['book', 'quantity']
+        widgets = {
+            'book': forms.Select(attrs={'style': 'width: 100%;'}),
+            'quantity': forms.NumberInput(attrs={'min': 1, 'style': 'width: 60px;'}),
+        }
+
+class OrderEditForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['delivery_address', 'payment_method']
+
+class OrderItemsFormSet(forms.BaseInlineFormSet):
+    # To validate or customize formset if needed
+    pass
+
+OrderItemsFormSet = forms.inlineformset_factory(
+    Order,
+    OrderItem,
+    form=OrderItemForm,
+    extra=0,
+    can_delete=True
+)
+
+class AddBookToOrderForm(forms.Form):
+    book = forms.ModelChoiceField(queryset=Book.objects.all(), label="Выбрать книгу")
+    quantity = forms.IntegerField(min_value=1, initial=1)
+
+class RestoreLoginForm(forms.Form):
+    email = forms.EmailField(label="Email", required=True)
+    backup_word = forms.CharField(label="Резервное слово", max_length=100, required=True)
+
+class SetNewPasswordForm(forms.Form):
+    new_password = forms.CharField(
+        label="Новый пароль",
+        widget=forms.PasswordInput,
+        validators=[validate_password],
+        required=True
+    )
+    new_password_confirm = forms.CharField(
+        label="Подтвердите пароль",
+        widget=forms.PasswordInput,
+        required=True
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw1 = cleaned_data.get("new_password")
+        pw2 = cleaned_data.get("new_password_confirm")
+        if pw1 and pw2 and pw1 != pw2:
+            raise ValidationError("Пароли не совпадают.")
+        return cleaned_data
+    
+
+
+
+class CardForm(forms.ModelForm):
+    class Meta:
+        model = Card
+        fields = ['card_number', 'card_holder', 'expiry_date', 'cvv']
+        widgets = {
+            'card_number': forms.TextInput(attrs={
+                'placeholder': 'XXXX XXXX XXXX XXXX',
+                'maxlength': 19,
+                'autocomplete': 'off'
+            }),
+            'expiry_date': forms.TextInput(attrs={
+                'placeholder': 'MM/YY',
+                'maxlength': 5,
+                'autocomplete': 'off'
+            }),
+            'card_holder': forms.TextInput(attrs={'placeholder': 'Имя владельца'}),
+            'cvv': forms.PasswordInput(attrs={
+                'placeholder': 'CVV/CVC',
+                'maxlength': 3,
+                'autocomplete': 'off'
+            }),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        card_number = cleaned_data.get('card_number', '').replace(' ', '')
+        expiry_date = cleaned_data.get('expiry_date', '')
+        cvv = cleaned_data.get('cvv', '')
+
+        # Номер карты должен быть 16 цифр
+        if card_number and (not card_number.isdigit() or len(card_number) != 16):
+            self.add_error('card_number', "Номер карты должен содержать 16 цифр")
+
+        # Формат expiry_date MM/YY
+        if expiry_date and not re.match(r'^(0[1-9]|1[0-2])\/\d{2}$', expiry_date):
+            self.add_error('expiry_date', "Формат даты должен быть MM/YY")
+
+        # Проверка что карта не просрочена
+        if expiry_date and re.match(r'^(0[1-9]|1[0-2])\/\d{2}$', expiry_date):
+            month, year = expiry_date.split('/')
+            now = timezone.now()
+            exp_year = 2000 + int(year)
+            exp_month = int(month)
+            if (exp_year < now.year) or (exp_year == now.year and exp_month < now.month):
+                self.add_error('expiry_date', "Срок действия карты истек")
+
+        # CVV 3 цифры
+        if cvv and not re.match(r'^\d{3}$', cvv):
+            self.add_error('cvv', "CVV должен содержать ровно 3 цифры")
+
+        return cleaned_data
+
 
 class DepositForm(forms.Form):
-    amount = forms.DecimalField(label="Сумма пополнения", min_value=Decimal('0.01'), max_digits=12, decimal_places=2)
+    amount = forms.DecimalField(label="Сумма пополнения", min_value=Decimal('10.00'), max_value=Decimal('100000.00'), max_digits=12, decimal_places=2)
     password = forms.CharField(label="Пароль", widget=forms.PasswordInput)
 
     def __init__(self, user, *args, **kwargs):
@@ -26,14 +170,19 @@ class DepositForm(forms.Form):
             raise forms.ValidationError("Неверный пароль.")
         return password
 
+
 class TransferForm(forms.Form):
     to_user_email = forms.EmailField(label="Email получателя")
-    amount = forms.DecimalField(label="Сумма перевода", min_value=Decimal('0.01'), max_digits=12, decimal_places=2)
+    to_user_card = forms.IntegerField(label="Карта получателя", required=True, widget=forms.Select())  # будет заменён динамически
+    amount = forms.DecimalField(label="Сумма перевода", min_value=Decimal('10.00'), max_digits=12, decimal_places=2)
     password = forms.CharField(label="Пароль", widget=forms.PasswordInput)
+    to_user = None
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        # Уберём widget select для to_user_card - он будет динамическим через JS
+        self.fields['to_user_card'].widget = forms.Select(choices=[('', 'Сначала введите Email получателя')])
 
     def clean_password(self):
         password = self.cleaned_data.get('password')
@@ -42,8 +191,8 @@ class TransferForm(forms.Form):
         return password
 
     def clean_to_user_email(self):
-        email = self.cleaned_data.get('to_user_email')
         from django.contrib.auth.models import User
+        email = self.cleaned_data.get('to_user_email')
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -53,15 +202,14 @@ class TransferForm(forms.Form):
         self.to_user = user
         return email
 
+    def clean_to_user_card(self):
+        to_user_card = self.cleaned_data.get('to_user_card')
+        # Валидируется в view, т.к. требует связи с to_user
+        return to_user_card
+
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
-        if self.user.balance.amount < amount:
-            raise forms.ValidationError("Недостаточно средств для перевода.")
         return amount
-    
-
-
-
 
 def format_phone_number(value: str) -> str:
     digits = ''.join(filter(str.isdigit, value))
@@ -77,6 +225,7 @@ class ClientProfileForm(forms.ModelForm):
                                 'placeholder': '+7 (___) ___-__-__',
                                 'oninput': 'formatPhoneInput(this)'
                             }))
+    backup_word = forms.CharField(label="Резервное слово", max_length=100, required=False)
 
     class Meta:
         model = User
@@ -87,13 +236,16 @@ class ClientProfileForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.user:
             profile = getattr(self.user, "profile", None)
-            if profile and profile.phone:
-                self.fields['phone'].initial = format_phone_number(profile.phone)
-            if profile and profile.middle_name:
-                self.fields['middle_name'].initial = profile.middle_name
+            if profile:
+                if profile.phone:
+                    self.fields['phone'].initial = format_phone_number(profile.phone)
+                if profile.middle_name:
+                    self.fields['middle_name'].initial = profile.middle_name
+                if profile.backup_word:
+                    self.fields['backup_word'].initial = profile.backup_word
 
-        self.fields['email'].widget.attrs.update({'type': 'email', 'autocomplete': 'email'})
         letter_pattern = r'^[А-Яа-яЁёA-Za-z\- ]+$'
+        self.fields['email'].widget.attrs.update({'type': 'email', 'autocomplete': 'email'})
         self.fields['first_name'].widget.attrs.update({'pattern': letter_pattern, 'title': 'Только буквы, пробелы и дефисы'})
         self.fields['last_name'].widget.attrs.update({'pattern': letter_pattern, 'title': 'Только буквы, пробелы и дефисы'})
         self.fields['middle_name'].widget.attrs.update({'pattern': letter_pattern, 'title': 'Только буквы, пробелы и дефисы'})
@@ -138,6 +290,12 @@ class ClientProfileForm(forms.ModelForm):
                 raise ValidationError("Пользователь с таким номером телефона уже существует.")
         return digits
 
+    def clean_backup_word(self):
+        backup_word = self.cleaned_data.get('backup_word', '').strip()
+        if backup_word and len(backup_word) > 100:
+            raise ValidationError("Резервное слово не может быть длиннее 100 символов.")
+        return backup_word
+
     def save(self, commit=True):
         new_email = self.cleaned_data.get('email').lower()
         changed_email = self.user.email.lower() != new_email if self.user else True
@@ -153,10 +311,9 @@ class ClientProfileForm(forms.ModelForm):
             profile = user.profile
             profile.middle_name = self.cleaned_data.get('middle_name', '')
             profile.phone = self.cleaned_data.get('phone', '')
+            profile.backup_word = self.cleaned_data.get('backup_word', '')
             profile.save()
 
-            # Если email изменился — удалить все сессии пользователя, кроме текущей,
-            # чтобы нельзя было войти по старому email или сессии
             if changed_email:
                 sessions = Session.objects.filter(expire_date__gte=timezone.now())
                 uid_str = str(user.pk)
@@ -164,11 +321,11 @@ class ClientProfileForm(forms.ModelForm):
                     data = session.get_decoded()
                     if str(data.get('_auth_user_id')) == uid_str:
                         session.delete()
-
         else:
             profile = user.profile
             profile.middle_name = self.cleaned_data.get('middle_name', '')
             profile.phone = self.cleaned_data.get('phone', '')
+            profile.backup_word = self.cleaned_data.get('backup_word', '')
 
         return user
 
@@ -247,10 +404,32 @@ class PromotionForm(forms.ModelForm):
             PromotionBook.objects.create(promotion=promotion, book=book)
         return promotion
 
+LANGUAGE_CHOICES = [
+    ('', '--- Выберите язык ---'),
+    ('Russian', 'Русский'),
+    ('English', 'Английский'),
+    ('German', 'Немецкий'),
+    ('French', 'Французский'),
+    ('Spanish', 'Испанский'),
+    ('Chinese', 'Китайский'),
+    ('Japanese', 'Японский'),
+    ('Italian', 'Итальянский'),
+    ('Portuguese', 'Португальский'),
+    ('Arabic', 'Арабский'),
+    # Добавьте другие языки по необходимости
+]
+
+
 class BookForm(forms.ModelForm):
     image_urls = forms.CharField(
         label="Ссылки на изображения (через запятую)",
         widget=forms.Textarea(attrs={"rows": 3}),
+        required=False
+    )
+
+    language = forms.ChoiceField(
+        label="Язык книги",
+        choices=LANGUAGE_CHOICES,
         required=False
     )
 
@@ -266,6 +445,8 @@ class BookForm(forms.ModelForm):
             'isbn',
             'image_urls',
             'delivery_days',
+            'year_created',
+            'language',
         ]
 
     def clean_isbn(self):
@@ -293,36 +474,50 @@ def format_phone_number(raw_number: str) -> str:
 
 
 class UserAdminForm(forms.ModelForm):
+    # поля для смены пароля
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput, required=False)
     password2 = forms.CharField(label='Подтверждение пароля', widget=forms.PasswordInput, required=False)
-    # Убираем current_password, т.к. больше не нужен
 
+    # дополнительные поля не из User
     middle_name = forms.CharField(label="Отчество", max_length=30, required=False)
     phone = forms.CharField(label="Телефон", max_length=20, required=True)
     role = forms.ChoiceField(choices=Profile.ROLE_CHOICES, label="Роль", required=True)
-    # is_blocked убрано из формы
+    backup_word = forms.CharField(label="Резервное слово", max_length=100, required=False)
 
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'middle_name', 'phone', 'role',
-                  'password1', 'password2']
+        # ВАЖНО: здесь только поля МОДЕЛИ User!
+        fields = [
+            'email',
+            'first_name',
+            'last_name',
+            # middle_name, phone, role, backup_word – это из Profile, поэтому не включаем их в Meta.fields
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # username будем прятать или не использовать, чтобы логин был по email
+        if 'username' in self.fields:
+            self.fields['username'].required = False
+            self.fields['username'].widget = forms.HiddenInput()
+
         if self.instance and self.instance.pk:
+            # Редактирование существующего пользователя
             profile = self.instance.profile
             self.fields['middle_name'].initial = profile.middle_name
-
-            # Форматируем телефон для отображения в поле
             self.fields['phone'].initial = format_phone_number(profile.phone)
-
             self.fields['role'].initial = profile.role
+            self.fields['backup_word'].initial = profile.backup_word
 
             self.fields['password1'].required = False
             self.fields['password2'].required = False
         else:
+            # Создание нового пользователя
             self.fields['password1'].required = True
             self.fields['password2'].required = True
+
+    # ======== ВАЛИДАЦИЯ ========
 
     def clean_email(self):
         email = self.cleaned_data['email'].lower()
@@ -338,6 +533,7 @@ class UserAdminForm(forms.ModelForm):
         digits = ''.join(filter(str.isdigit, phone))
         if len(digits) != 11 or not digits.startswith('7'):
             raise ValidationError("Введите корректный номер телефона в формате +7 (XXX) XXX-XX-XX")
+
         qs = Profile.objects.filter(phone=digits)
         if self.instance.pk:
             qs = qs.exclude(user__pk=self.instance.pk)
@@ -363,38 +559,47 @@ class UserAdminForm(forms.ModelForm):
             raise ValidationError("Отчество может содержать только буквы, пробелы и дефисы.")
         return middle_name
 
-    # Убираем clean_current_password, так как пароль не требуется
-
     def clean_password2(self):
         p1 = self.cleaned_data.get('password1')
         p2 = self.cleaned_data.get('password2')
-        if p1 or p2:
-            if p1 != p2:
-                raise ValidationError("Пароли не совпадают.")
-            if len(p1) < 8:
-                raise ValidationError("Пароль должен содержать не менее 8 символов.")
-            if not re.search(r'[A-Za-z]', p1):
-                raise ValidationError("Пароль должен содержать хотя бы одну букву.")
-            if not re.search(r'\d', p1):
-                raise ValidationError("Пароль должен содержать хотя бы одну цифру.")
-            if not re.search(r'[^\w\s]', p1):
-                raise ValidationError("Пароль должен содержать хотя бы один специальный символ.")
+
+        # Если оба пароля пустые — просто ничего не меняем
+        if not p1 and not p2:
+            return p2
+
+        if p1 != p2:
+            raise ValidationError("Пароли не совпадают.")
+        if len(p1) < 8:
+            raise ValidationError("Пароль должен содержать не менее 8 символов.")
+        if not re.search(r'[A-Za-z]', p1):
+            raise ValidationError("Пароль должен содержать хотя бы одну букву.")
+        if not re.search(r'\d', p1):
+            raise ValidationError("Пароль должен содержать хотя бы одну цифру.")
+        if not re.search(r'[^\w\s]', p1):
+            raise ValidationError("Пароль должен содержать хотя бы один специальный символ.")
         return p2
+
+    # ======== СОХРАНЕНИЕ ========
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email'].lower()
-        user.username = self.cleaned_data['email'].lower()
+        email = self.cleaned_data['email'].lower()
+        user.email = email
+        user.username = email  # логинимся по email
+
+        # Меняем пароль, только если был введён новый
         if self.cleaned_data.get('password1'):
             user.set_password(self.cleaned_data['password1'])
+
         if commit:
             user.save()
             profile = user.profile
             profile.middle_name = self.cleaned_data.get('middle_name', '')
             profile.phone = self.cleaned_data.get('phone', '')  # в чистых цифрах из clean_phone
             profile.role = self.cleaned_data['role']
-            # is_blocked мы не меняем тут
+            profile.backup_word = self.cleaned_data.get('backup_word', '')
             profile.save()
+
         return user
 
 
@@ -404,67 +609,79 @@ class RegistrationForm(UserCreationForm):
     first_name = forms.CharField(label="Имя", max_length=30, required=True)
     last_name = forms.CharField(label="Фамилия", max_length=30, required=True)
     middle_name = forms.CharField(label="Отчество", max_length=30, required=False)
+
     phone = forms.CharField(
-        label="Телефон", max_length=20, required=True,
+        label="Телефон",
+        max_length=20,
+        required=True,
         widget=forms.TextInput(attrs={
             'placeholder': '+7 (___) ___-__-__',
-            'oninput': 'formatPhone(this)'
-        })
+            'oninput': 'formatPhone(this)',
+        }),
     )
+
     email = forms.EmailField(label="Email", required=True)
+    backup_word = forms.CharField(
+        label="Резервное слово",
+        max_length=100,
+        required=False,
+        help_text="Слово, которое поможет восстановить доступ, если забудете пароль.",
+    )
 
     class Meta:
         model = User
-        fields = ("email", "last_name", "first_name", "middle_name", "phone", "password1", "password2")
+        # Здесь тоже только поля модели User
+        fields = (
+            "email",
+            "last_name",
+            "first_name",
+            # middle_name, phone, backup_word – будут обработаны вручную
+            "password1",
+            "password2",
+        )
 
     def clean_phone(self):
         phone = self.cleaned_data['phone']
         digits = ''.join(filter(str.isdigit, phone))
         if len(digits) != 11 or not digits.startswith('7'):
             raise forms.ValidationError("Введите корректный номер телефона в формате +7 (XXX) XXX-XX-XX")
-        from .models import Profile
+
         if Profile.objects.filter(phone=digits).exists():
             raise forms.ValidationError("Пользователь с таким номером телефона уже существует")
         return digits
 
+    def clean_first_name(self):
+        first_name = self.cleaned_data['first_name']
+        if not re.fullmatch(r'[А-Яа-яЁёA-Za-z\- ]+', first_name):
+            raise forms.ValidationError("Имя может содержать только буквы, пробелы и дефисы.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data['last_name']
+        if not re.fullmatch(r'[А-Яа-яЁёA-Za-z\- ]+', last_name):
+            raise forms.ValidationError("Фамилия может содержать только буквы, пробелы и дефисы.")
+        return last_name
+
+    def clean_middle_name(self):
+        middle_name = self.cleaned_data.get('middle_name')
+        if middle_name and not re.fullmatch(r'[А-Яа-яЁёA-Za-z\- ]+', middle_name):
+            raise forms.ValidationError("Отчество может содержать только буквы, пробелы и дефисы.")
+        return middle_name
+
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.username = self.cleaned_data['email']  # username = email
-        user.email = self.cleaned_data['email']
+        email = self.cleaned_data['email']
+        user.username = email  # username = email
+        user.email = email
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
+
         if commit:
             user.save()
             profile = user.profile
-            profile.middle_name = self.cleaned_data['middle_name']
-            profile.phone = self.cleaned_data['phone']
+            profile.middle_name = self.cleaned_data.get('middle_name', '')
+            profile.phone = self.cleaned_data['phone']     # уже в виде цифр из clean_phone
+            profile.backup_word = self.cleaned_data.get('backup_word', '')
             profile.save()
+
         return user
-
-
-class PasswordResetPhoneForm(forms.Form):
-    phone = forms.CharField(
-        label="Телефон",
-        max_length=18,
-        widget=forms.TextInput(attrs={
-            'placeholder': '+7 (___) ___-__-__',
-            'autocomplete': 'tel',
-            'oninput': 'formatPhone(this)',
-            'pattern': r'^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$',
-        }),
-        required=True,
-    )
-
-    def clean_phone(self):
-        phone = self.cleaned_data['phone']
-        digits = ''.join(filter(str.isdigit, phone))
-        if len(digits) != 11 or not digits.startswith('7'):
-            raise forms.ValidationError("Введите корректный номер телефона в формате +7 (XXX) XXX-XX-XX")
-        from django.contrib.auth.models import User
-        if not User.objects.filter(profile__phone=digits).exists():
-            raise forms.ValidationError("Пользователь с таким номером телефона не найден")
-        return digits
-
-
-class PasswordResetCodeForm(forms.Form):
-    code = forms.CharField(label="Введите 4-значный код", max_length=4, min_length=4)

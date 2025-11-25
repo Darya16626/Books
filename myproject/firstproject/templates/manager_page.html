@@ -2,212 +2,473 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Менеджер - BookHaven</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <style>
-        :root {
-            --color-bg-light: #f9f9f9;
-            --color-text-light: #222222;
-            --color-accent: #0066cc;
-            --color-error: #e74c3c;
-            --color-bg-dark: #1e1e2f;
-            --color-text-dark: #eaeaea;
-            --color-button-bg: var(--color-accent);
-            --color-button-text: #ffffff;
-            --border-radius: 10px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            --shadow-light: rgba(0, 102, 204, 0.25);
-        }
-        body {
-            margin: 0;
-            background-color: var(--color-bg-light);
-            color: var(--color-text-light);
-            font-family: var(--font-family);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 20px;
-            transition: background-color 0.4s, color 0.4s;
-        }
-        body.dark-theme {
-            background-color: var(--color-bg-dark);
-            color: var(--color-text-dark);
-        }
-        header {
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-        header h1 {
-            color: var(--color-accent);
-            font-size: 2.4rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        .theme-toggle {
-            background: var(--color-accent);
-            color: var(--color-button-text);
-            border: none;
-            padding: 10px 18px;
-            border-radius: 30px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px var(--shadow-light);
-            transition: background-color 0.3s;
-        }
-        .theme-toggle:hover {
-            background-color: #004d99;
-        }
-        main {
-            width: 100%;
-            max-width: 1000px;
-            background: #fff;
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 35px 45px;
-            transition: background-color 0.4s, color 0.4s;
-        }
-        body.dark-theme main {
-            background: #2a2a40;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        main h2 {
-            color: var(--color-accent);
-            font-weight: 700;
-            font-size: 2rem;
-            margin-top: 0;
-            margin-bottom: 30px;
-            border-bottom: 3px solid var(--color-accent);
-            padding-bottom: 10px;
-        }
-        .welcome {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-        }
-        .manager-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 30px;
-        }
-        .panel-card {
-            background: #e6f0ff;
-            border-radius: 12px;
-            padding: 24px 20px;
-            box-shadow: 0 6px 20px rgba(0,102,204,0.15);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            user-select: none;
-            color: var(--color-accent);
-            text-decoration: none;
-            text-align: center;
-        }
-        body.dark-theme .panel-card {
-            background: #3a3f5a;
-            box-shadow: 0 6px 24px rgba(0,102,204,0.5);
-            color: #a9c4ff;
-        }
-        .panel-card:hover {
-            box-shadow: 0 8px 30px rgba(0,102,204,0.5);
-            background: #c4d8ff;
-            color: var(--color-accent);
-        }
-        body.dark-theme .panel-card:hover {
-            background: #4a587d;
-            color: #d1e1ff;
-        }
-        .card-icon {
-            font-size: 36px;
-            color: var(--color-accent);
-            margin-bottom: 15px;
-        }
-        .card-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-        .card-desc {
-            font-size: 0.95rem;
-        }
-        .logout-link {
-            display: inline-block;
-            margin-top: 50px;
-            background: #e74c3c;
-            color: #fff;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 700;
-            box-shadow: 0 5px 15px rgba(231,76,60,0.5);
-            transition: background-color 0.3s;
-            text-align: center;
-        }
-        .logout-link:hover {
-            background-color: #c0392b;
-        }
-        body.dark-theme .logout-link {
-            background: #c0392b;
-            box-shadow: 0 5px 15px rgba(192,57,43,0.7);
-        }
-    </style>
-    <script>
-        window.onload = function() {
-            if(localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-theme');
-            }
-        };
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            if(document.body.classList.contains('dark-theme')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        }
-    </script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Менеджер - BookHaven</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative&family=Lobster&family=Orbitron&family=Pacifico&family=Russo+One&family=Vampiro+One&display=swap&subset=cyrillic" rel="stylesheet" />
+
+<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+<style>
+:root {
+    --color-accent: #0066cc;
+    --color-bg-light: linear-gradient(135deg, #e6f0ff 0%, #cce0ff 50%, #a3cfff 100%);
+    --color-bg-dark: #1a162b;
+    --color-text-light: #222222;
+    --color-text-dark: #eaeaea;
+
+    --font-family: 'Cinzel Decorative', serif;
+
+    --border-radius: 10px;
+    --btn-padding: 12px 25px;
+    --btn-font-size: 1rem;
+    --btn-shadow: 0 5px 15px rgba(0, 102, 204, 0.25);
+    --card-shadow-light: 0 10px 40px rgba(0, 102, 255, 0.2);
+    --card-shadow-dark: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* Темная и светлая темы */
+body {
+    margin: 30px 20px;
+    font-family: var(--font-family);
+    background: var(--color-bg-light);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--color-text-light);
+    transition: background-color 0.8s ease, color 0.4s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+body.dark-theme {
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+    --btn-shadow: 0 5px 15px rgba(0,66,134,0.7);
+    --card-shadow: var(--card-shadow-dark);
+}
+
+/* Canvas и SVG для космического фона */
+#star-canvas, #constellation-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+/* Кнопки */
+a.back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.3s;
+    z-index: 1001;
+}
+a.back-button:hover {
+    color: #004a99;
+}
+
+button#theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: var(--btn-padding);
+    font-size: var(--btn-font-size);
+    font-weight: 700;
+    color: #fff;
+    background-color: var(--color-accent);
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--btn-shadow);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    z-index: 1001;
+}
+button#theme-toggle-btn:hover {
+    background-color: #004a99;
+}
+
+/* Основная обертка */
+.main-wrapper {
+    max-width: 1000px;
+    width: 100%;
+    padding: 35px 45px;
+    border-radius: var(--border-radius);
+    background: rgba(255 255 255 / 0.85);
+    box-shadow: 0 0 30px 8px var(--color-accent);
+    position: relative;
+    z-index: 10;
+    color: var(--color-text-light);
+    transition: background-color 0.4s, color 0.4s, box-shadow 0.4s;
+}
+body.dark-theme .main-wrapper {
+    background: rgba(30 30 47 / 0.85);
+    color: var(--color-text-dark);
+    box-shadow: var(--card-shadow-dark);
+    filter: brightness(1);
+}
+
+/* Заголовки */
+h1 {
+    font-family: var(--font-family);
+    font-weight: 600;
+    color: var(--color-accent);
+    font-size: 2.6rem;
+    margin-bottom: 40px;
+}
+
+/* Панели менеджера */
+.manager-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+    gap: 30px;
+}
+.panel-card {
+    background: #e6f0ff;
+    border-radius: 12px;
+    padding: 24px 20px;
+    box-shadow: 0 6px 20px rgba(0,102,204,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--color-accent);
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+body.dark-theme .panel-card {
+    background: #3a3f5a;
+    box-shadow: 0 6px 24px rgba(0,102,204,0.5);
+    color: #a9c4ff;
+}
+.panel-card:hover {
+    background: #c4d8ff;
+    box-shadow: 0 8px 30px rgba(0,102,204,0.5);
+    color: var(--color-accent);
+}
+body.dark-theme .panel-card:hover {
+    background: #4a587d;
+    color: #d1e1ff;
+}
+.card-icon {
+    font-size: 36px;
+    color: var(--color-accent);
+    margin-bottom: 15px;
+}
+.card-title {
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+.card-desc {
+    font-size: 1rem;
+}
+
+/* Ссылка Выйти */
+.logout-link {
+    display: inline-block;
+    margin-top: 50px;
+    background: #e74c3c;
+    color: #fff;
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(231,76,60,0.5);
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+.logout-link:hover {
+    background-color: #c0392b;
+}
+body.dark-theme .logout-link {
+    background: #c0392b;
+    box-shadow: 0 5px 15px rgba(192,57,43,0.7);
+}
+</style>
 </head>
 <body>
-    <header>
-        <h1>BookHaven Manager</h1>
-        <button class="theme-toggle" type="button" onclick="toggleTheme()">Тёмная / Светлая тема</button>
-    </header>
+<button id="theme-toggle-btn" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
+
+<div class="main-wrapper" role="main" aria-label="Менеджер BookHaven">
     <main>
+        <h1>BookHaven Manager</h1>
         <h2>Добро пожаловать, {{ user.get_full_name|default:user.email }}!</h2>
         <p class="welcome">Роль: {{ user.profile.get_role_display }}</p>
         <p class="welcome">Управляйте заказами клиентов и контролируйте состояние магазина.</p>
 
-        <section class="manager-panel">
-            <a href="#" class="panel-card" title="Обработка заказов">
-                <div class="card-icon">🛒</div>
+        <section class="manager-panel" aria-label="Панель управления">
+            <a href="{% url 'manager_order_list' %}" class="panel-card" title="Обработка заказов" role="button">
+                <div class="card-icon" aria-hidden="true">🛒</div>
                 <div class="card-title">Заказы</div>
                 <div class="card-desc">Изменение статусов, общение с клиентами</div>
             </a>
-            <a href="#" class="panel-card" title="Управление складом">
-                <div class="card-icon">📦</div>
-                <div class="card-title">Склад</div>
-                <div class="card-desc">Учет остатков, поступления книг, списания</div>
-            </a>
-            <a href="#" class="panel-card" title="Формирование отчетов">
-                <div class="card-icon">📊</div>
+            <a href="{% url 'manager_order_analytics' %}" class="panel-card" title="Формирование отчетов" role="button">
+                <div class="card-icon" aria-hidden="true">📊</div>
                 <div class="card-title">Аналитика</div>
                 <div class="card-desc">Формирование отчетов по продажам</div>
-            </a>
-            <a href="#" class="panel-card" title="Поддержка клиентов">
-                <div class="card-icon">💬</div>
-                <div class="card-title">Поддержка</div>
+            </a>            
+            <a href="{% url 'manager_support_page' %}" class="panel-card" title="Поддержка клиентов" role="button">
+                <div class="card-icon" aria-hidden="true">💬</div>
+                <div class="card-title">Поддержка клиентов</div>
                 <div class="card-desc">Решение вопросов и поддержка клиентов</div>
             </a>
         </section>
 
         <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
     </main>
+</div>
+
+<canvas id="star-canvas"></canvas>
+<svg id="constellation-svg" aria-hidden="true" focusable="false"></svg>
+
+<script>
+// Основные переменные
+const canvas = document.getElementById('star-canvas');
+const ctx = canvas.getContext('2d');
+const constellationSVG = document.getElementById('constellation-svg');
+let width, height;
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+}
+resize();
+window.addEventListener('resize', () => {
+    resize();
+    createConstellation();
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+});
+
+function isDarkTheme() {
+    return document.body.classList.contains('dark-theme');
+}
+
+class Star {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.radius = (Math.random() * 1.2 + 0.4) * (isDarkTheme() ? 1 : 1.6);
+        this.alpha = Math.random() * 0.8 + 0.4;
+        this.dAlpha = (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1);
+        this.speedX = (Math.random() - 0.5) * 0.06;
+        this.speedY = (Math.random() - 0.5) * 0.06;
+    }
+    update() {
+        this.alpha += this.dAlpha;
+        if(this.alpha <= (isDarkTheme() ? 0.3 : 0.5) || this.alpha >=1) this.dAlpha = -this.dAlpha;
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x < 0) this.x = width;
+        if(this.x > width) this.x = 0;
+        if(this.y < 0) this.y = height;
+        if(this.y > height) this.y = 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(30,115,255,${this.alpha * 0.9})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,0.7)' : 'rgba(100,170,255,0.8)';
+        ctx.shadowBlur = isDarkTheme() ? 4 : 10;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Comet {
+    constructor() {
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height * 0.5;
+        this.length = 80 + Math.random() * 40;
+        this.speedX = 4 + Math.random() * 3;
+        this.speedY = -0.5 + Math.random();
+        this.radius = (1.5 + Math.random()) * (isDarkTheme() ? 1 : 1.4);
+        this.tailLength = this.length * 1.5;
+        this.tailWidth = this.radius * 4;
+        this.alpha = 0.85 + Math.random() * 0.15;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x - this.tailLength > width || this.y + this.tailLength < 0 || this.y - this.tailLength > height) {
+            this.reset();
+            this.x = -this.tailLength;
+        }
+    }
+    draw() {
+        const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.tailLength, this.y - this.tailLength*0.5);
+        gradient.addColorStop(0, isDarkTheme()
+            ? `rgba(255,255,255,${this.alpha})`
+            : `rgba(100,170,255,${this.alpha * 0.9})`);
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,0.9)' : 'rgba(100,170,255,0.7)';
+        ctx.shadowBlur = isDarkTheme() ? 10 : 15;
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(this.x-this.tailLength,this.y-this.tailLength*0.5);
+        ctx.lineTo(this.x-this.tailLength+this.tailWidth,this.y-this.tailLength*0.5+this.tailWidth*0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.beginPath();
+        ctx.fillStyle = isDarkTheme() ? `rgba(255,255,255,${this.alpha})` : `rgba(100,170,255,${this.alpha})`;
+        ctx.shadowColor = isDarkTheme() ? 'rgba(255,255,255,1)' : 'rgba(100,170,255,1)';
+        ctx.shadowBlur = isDarkTheme() ? 15 : 20;
+        ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+const stars = [];
+const TOTAL_STARS = 180;
+for(let i=0; i<TOTAL_STARS; i++) stars.push(new Star());
+
+const comets = [];
+const TOTAL_COMETS = 3;
+for(let i=0; i<TOTAL_COMETS; i++) comets.push(new Comet());
+
+const constellationPoints = [
+    {x: 0.2*width, y: 0.2*height},
+    {x: 0.4*width, y: 0.25*height},
+    {x: 0.6*width, y: 0.15*height},
+    {x: 0.75*width, y: 0.35*height},
+    {x: 0.85*width, y: 0.2*height},
+
+    {x: 0.3*width, y: 0.7*height},
+    {x: 0.5*width, y: 0.8*height},
+    {x: 0.7*width, y: 0.75*height},
+    {x: 0.9*width, y: 0.85*height},
+];
+
+const constellationLines = [
+    [0,1],[1,2],[2,4],
+    [0,3],[3,4],
+    [5,6],[6,7],[7,8]
+];
+
+function createConstellation() {
+    constellationSVG.innerHTML = '';
+    constellationPoints.forEach((point,i) =>{
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', point.x);
+        circle.setAttribute('cy', point.y);
+        circle.setAttribute('r', isDarkTheme() ? 4 : 6);
+        circle.setAttribute('fill', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        circle.style.filter = isDarkTheme() ? 'drop-shadow(0 0 4px #ffa6ba)' : 'drop-shadow(0 0 6px #5fb0ff)';
+        circle.classList.add('const-star');
+        constellationSVG.appendChild(circle);
+    });
+    constellationLines.forEach(line =>{
+        const [startIdx,endIdx] = line;
+        const start = constellationPoints[startIdx];
+        const end = constellationPoints[endIdx];
+        const polyline = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+        polyline.setAttribute('points', `${start.x},${start.y} ${end.x},${end.y}`);
+        polyline.setAttribute('stroke', isDarkTheme() ? 'lightpink' : '#4aa1ff');
+        polyline.setAttribute('stroke-width', isDarkTheme() ? 2 : 3);
+        polyline.setAttribute('fill', 'none');
+        polyline.style.filter = isDarkTheme() ? 'drop-shadow(0 0 4px #ffa6ba)' : 'drop-shadow(0 0 6px #5fb0ff)';
+        constellationSVG.appendChild(polyline);
+    });
+}
+createConstellation();
+
+let constellationOffset = {x:0,y:0};
+let direction = 1;
+
+function animate() {
+    ctx.clearRect(0,0,width,height);
+    stars.forEach(star => { star.update(); star.draw(); });
+    comets.forEach(comet => { comet.update(); comet.draw(); });
+
+    constellationOffset.x += 0.02 * direction;
+    if(Math.abs(constellationOffset.x) > 10) direction *= -1;
+
+    constellationSVG.style.transform = `translate(${constellationOffset.x}px, ${Math.sin(constellationOffset.x * 0.3) * 5}px)`;
+
+    constellationSVG.querySelectorAll('circle').forEach((circle,i) => {
+        let baseAlpha = 0.7 + 0.3 * Math.sin(Date.now() / 1000 + i);
+        circle.style.opacity = baseAlpha.toFixed(2);
+    });
+    constellationSVG.querySelectorAll('polyline').forEach((pline,i) => {
+        let baseAlpha = 0.5 + 0.4 * Math.sin(Date.now() / 1500 + i);
+        pline.style.opacity = baseAlpha.toFixed(2);
+    });
+
+    requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+function applyThemeAndPreferences() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const accentColor = localStorage.getItem('accentColor') || '#0066cc';
+    const borderRadius = localStorage.getItem('borderRadius') || '10px';
+    const fontFamily = localStorage.getItem('fontFamily') || "'Cinzel Decorative', serif";
+
+    if(theme==='dark') document.body.classList.add('dark-theme');
+    else document.body.classList.remove('dark-theme');
+
+    document.documentElement.style.setProperty('--color-accent', accentColor);
+    document.documentElement.style.setProperty('--border-radius', borderRadius);
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+
+    const mainWrapper = document.querySelector('.main-wrapper');
+    if(mainWrapper) {
+        mainWrapper.style.borderRadius = borderRadius;
+        mainWrapper.style.boxShadow = `0 0 30px 8px ${accentColor}`;
+    }
+
+    stars.forEach(star => star.reset());
+    comets.forEach(comet => comet.reset());
+    createConstellation();
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    const newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyThemeAndPreferences();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    applyThemeAndPreferences();
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+});
+</script>
+
 </body>
 </html>

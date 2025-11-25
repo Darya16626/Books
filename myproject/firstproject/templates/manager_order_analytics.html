@@ -1,0 +1,441 @@
+{% load static %}
+{% block content %}
+<style>
+  /* Светлая тема - фон, цвета, шрифты */
+  body {
+    background: #f9fafb;
+    color: #222;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0; overflow-x: hidden;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 40px auto 80px;
+    padding: 30px 50px 60px;
+    background: #ffffff;
+    border-radius: 30px;
+    box-shadow: 0 8px 30px rgba(100, 100, 100, 0.15);
+    text-align: center;
+    border: 2px solid #bdd7ff;
+  }
+  h2 {
+    font-weight: 900;
+    font-size: 3em;
+    margin-bottom: 48px;
+    color: #003366;
+    text-shadow: 0 0 4px #99bfff;
+  }
+  form.filter-form {
+    margin-bottom: 40px;
+    display: none; /* изначально скрыта */
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  form.filter-form.show {
+    display: flex;
+  }
+  form.filter-form input[type="text"],
+  form.filter-form input[type="date"] {
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1.5px solid #aac8ff;
+    font-size: 1em;
+    width: 180px;
+    box-shadow: inset 0 0 8px #aac8ff88;
+    background-color: #eff4ff;
+    color: #003366;
+    transition: border-color 0.3s ease;
+  }
+  form.filter-form input[type="text"]:focus,
+  form.filter-form input[type="date"]:focus {
+    border-color: #3366cc;
+    outline: none;
+    box-shadow: 0 0 8px #4a7beecc;
+    background-color: #e4ecff;
+  }
+  form.filter-form button {
+    background-image: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
+    border: none;
+    color: #f0f0ff;
+    padding: 12px 36px;
+    font-size: 1.1em;
+    font-weight: 900;
+    border-radius: 36px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px #2575fccc, inset 0 0 30px #6a11cbcc;
+    transition: background-position 0.5s ease;
+    background-size: 400% 400%;
+    background-position: 0% 50%;
+  }
+  form.filter-form button:hover {
+    background-position: 100% 50%;
+    box-shadow: 0 8px 28px #6a11cbee, inset 0 0 38px #2575fccc;
+  }
+
+  table.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 50px;
+    box-shadow: 0 0 30px #aac8ff99;
+    background: #fefefe;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table.orders-table thead {
+    background: linear-gradient(90deg, #aac8ff 0%, #d3e1ff 100%);
+    color: #003366;
+  }
+  table.orders-table th, table.orders-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid #dbe6ff;
+  }
+  tr.order-summary {
+    background: #f8fbff;
+    border-bottom: 1px solid #aac8ff;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  tr.order-summary:hover {
+    background: #d3e1ff;
+  }
+  tr.order-details {
+    background: #e4ecff;
+    color: #003366;
+    display: none;
+  }
+  tr.order-details td {
+    padding: 20px 18px;
+    border-bottom: 1px solid #aac8ff88;
+  }
+  .order-items-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex-start;
+  }
+  .order-item {
+    background: #dde7ff;
+    border-radius: 16px;
+    box-shadow: 0 0 18px #a3baffcc, inset 0 0 12px #c3d1ffcc;
+    padding: 10px;
+    width: 250px;
+    text-align: center;
+    color: #003366;
+  }
+  .order-item img {
+    max-width: 100%;
+    height: 170px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 15px #aac8ffbb;
+    object-fit: contain;
+    background: #f0f4ff;
+  }
+  .order-item-title {
+    font-weight: 700;
+    font-size: 1.1em;
+    margin-bottom: 6px;
+  }
+  .order-item-price {
+    color: #3366cc;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .order-item-quantity {
+    font-size: 1em;
+  }
+  .analytics-container {
+    max-width: 800px;
+    margin: 0 auto 40px auto;
+    padding: 40px 50px;
+    background: #fefefe;
+    border-radius: 30px;
+    box-shadow: 0 4px 30px rgba(100, 125, 255, 0.3);
+    border: 2px solid #aac8ff;
+  }
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #dbe6ff, #eaf2ff);
+    border-radius: 22px;
+    box-shadow: 0 0 30px #aac8ffaa, inset 0 -4px 20px #a1b8ff;
+    max-width: 100%;
+    height: 600px !important;
+    cursor: pointer;
+  }
+  #exportPdfBtn {
+    margin-top: 38px;
+    background-image: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
+    border: none;
+    color: #f0f0ff;
+    padding: 15px 40px;
+    font-size: 1.3em;
+    font-weight: 900;
+    border-radius: 36px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px #2575fccc, inset 0 0 30px #6a11cbcc;
+    transition: background-position 0.5s ease;
+    background-size: 400% 400%;
+    background-position: 0% 50%;
+  }
+  #exportPdfBtn:hover {
+    background-position: 100% 50%;
+    box-shadow: 0 8px 28px #6a11cbee, inset 0 0 38px #2575fccc;
+  }
+  #hotkey-tooltip {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #27ae60;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    z-index: 1000;
+    font-weight: bold;
+    user-select: none;
+  }
+</style>
+
+<div class="container">
+  <h2>Аналитика заказов</h2>
+  <!-- Форма фильтрации заказов -->
+  <form method="get" class="filter-form" onsubmit="return true;">
+    <input type="text" name="user" placeholder="Фильтр по клиенту" value="{{ user_filter }}">
+    <input type="date" name="date_from" value="{{ date_from }}">
+    <input type="date" name="date_to" value="{{ date_to }}">
+    <button type="submit">Фильтровать</button>
+  </form>
+
+  <!-- Таблица заказов с возможностью сворачивания -->
+  <table class="orders-table" id="ordersTable">
+    <thead>
+      <tr>
+        <th>Номер</th>
+        <th>Клиент</th>
+        <th>Дата создания</th>
+        <th>Метод оплаты</th>
+        <th>Адрес доставки</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr class="order-summary" data-order-id="{{ order.id }}">
+        <td>{{ order.id }}</td>
+        <td>{{ order.user.username }}</td>
+        <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+        <td>{{ order.get_payment_method_display }}</td>
+        <td>{{ order.delivery_address|truncatechars:40 }}</td>
+      </tr>
+      <tr class="order-details" id="details-{{ order.id }}">
+        <td colspan="5">
+          <div class="order-items-container">
+            {% for item in order.items.all %}
+            <div class="order-item">
+              {% with image_list=item.book.get_image_list %}
+                {% if image_list %}
+                  <img src="{{ image_list.0 }}" alt="{{ item.book.title }}">
+                {% else %}
+                  <img src="{% static 'images/no-image.png' %}" alt="No image">
+                {% endif %}
+              {% endwith %}
+              <div class="order-item-title">{{ item.book.title }}</div>
+              <div class="order-item-price">{{ item.book.get_discounted_price|default:item.book.price }} ₽</div>
+              <div class="order-item-quantity">Количество: {{ item.quantity }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center;">Нет заказов</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Диаграмма без списка книг -->
+  <div class="analytics-container">
+    <canvas id="orderDoughnutChart" width="600" height="600"></canvas>
+    <button id="exportPdfBtn">Экспортировать в PDF</button>
+  </div>
+</div>
+
+<!-- Передача JSON-данных для диаграммы -->
+{{ labels|json_script:"labels-data" }}
+{{ values|json_script:"values-data" }}
+
+<div id="hotkey-tooltip">Используйте Ctrl+Shift+F для открытия фильтров.</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tooltip = document.getElementById('hotkey-tooltip');
+  tooltip.style.display = 'block';
+  setTimeout(() => { tooltip.style.display = 'none'; }, 8000);
+
+  const filterForm = document.querySelector('form.filter-form');
+
+  // Переключение видимости формы фильтрации по Ctrl+Shift+F
+  document.addEventListener('keydown', (event) => {
+    if(event.ctrlKey && event.shiftKey && event.code === 'KeyF') {
+      event.preventDefault();
+      if(filterForm.style.display === 'flex' || filterForm.classList.contains('show')) {
+        filterForm.style.display = 'none';
+        filterForm.classList.remove('show');
+      } else {
+        filterForm.style.display = 'flex';
+        filterForm.classList.add('show');
+        const input = filterForm.querySelector('input[type="text"]');
+        if(input) {
+          input.focus();
+          const val = input.value;
+          input.value = '';
+          input.value = val;
+        }
+      }
+    }
+  });
+});
+
+const { jsPDF } = window.jspdf;
+
+const labels = JSON.parse(document.getElementById('labels-data').textContent);
+const dataValues = JSON.parse(document.getElementById('values-data').textContent);
+const ctx = document.getElementById('orderDoughnutChart').getContext('2d');
+
+function generateDynamicColor(ctx, count) {
+  const gradients = [];
+  const basePalettes = [
+    ['#ff6a00', '#ee0979'],
+    ['#00f260', '#0575e6'],
+    ['#f7971e', '#ffd200'],
+    ['#8200ff', '#e01e5a'],
+    ['#5efce8', '#736efe'],
+    ['#ff416c', '#ff4b2b'],
+    ['#43cea2', '#185a9d'],
+    ['#ed6ea0', '#ec8c69'],
+    ['#c471f5', '#fa71cd'],
+    ['#3a1c71', '#d76d77']
+  ];
+  for (let i=0; i<count; i++) {
+    const colors = basePalettes[i % basePalettes.length];
+    const gradient = ctx.createLinearGradient(0,0,0,380);
+    gradient.addColorStop(0, colors[0]);
+    gradient.addColorStop(1, colors[1]);
+    gradients.push(gradient);
+  }
+  return gradients;
+}
+
+const backgroundColors = generateDynamicColor(ctx, labels.length);
+Chart.register(ChartDataLabels);
+
+const data = {
+  labels: labels,
+  datasets: [{
+    data: dataValues,
+    backgroundColor: backgroundColors,
+    borderColor: '#ffffff',
+    borderWidth: 4,
+    hoverOffset: 60,
+    borderRadius: 30,
+    spacing: 10,
+    offset: 20,
+    cutout: '55%',
+  }]
+};
+
+const options = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { animateRotate: true, duration: 2500, easing: 'easeOutElastic' },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      enabled: true,
+      backgroundColor: '#fffafaff',
+      titleFont: { size: 20, weight: '900' },
+      bodyFont: { size: 18, weight: '700', color: '#222' },
+      padding: 18,
+      cornerRadius: 16,
+      displayColors: true,
+      boxPadding: 12,
+      interaction: { intersect: false }
+    },
+    datalabels: {
+      color: '#222222cc',
+      font: { weight: 'bold', size: 18 },
+      formatter: (value, ctx) => {
+        const sum = ctx.chart.data.datasets[0].data.reduce((a,b) => a+b, 0);
+        let percentage = ((value * 100) / sum).toFixed(1);
+        return percentage + '%';
+      },
+      anchor: 'end',
+      align: 'start',
+      offset: -30,
+      clamp: true,
+      backgroundColor: ctx => ctx.dataset.backgroundColor[ctx.dataIndex],
+      borderRadius: 14,
+      padding: 6,
+      display: 'auto',
+    }
+  },
+  rotation: -0.4 * Math.PI,
+  circumference: 2.8 * Math.PI,
+};
+
+const chart = new Chart(ctx, {
+  type: 'doughnut',
+  data: data,
+  options: options,
+  plugins: [ChartDataLabels]
+});
+
+document.getElementById('orderDoughnutChart').addEventListener('mousemove', event => {
+  const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect:true }, true);
+  if(points.length) {
+    const index = points[0].index;
+    chart.data.datasets[0].borderColor = chart.data.datasets[0].data.map((_,i) => i===index ? '#003366' : '#ffffff');
+    chart.data.datasets[0].borderWidth = chart.data.datasets[0].data.map((_,i) => i===index ? 10 : 4);
+    chart.update('none');
+  } else {
+    chart.data.datasets[0].borderColor = Array(chart.data.datasets[0].data.length).fill('#ffffff');
+    chart.data.datasets[0].borderWidth = Array(chart.data.datasets[0].data.length).fill(4);
+    chart.update('none');
+  }
+});
+document.getElementById('orderDoughnutChart').addEventListener('mouseout', () => {
+  chart.data.datasets[0].borderColor = Array(chart.data.datasets[0].data.length).fill('#ffffff');
+  chart.data.datasets[0].borderWidth = Array(chart.data.datasets[0].data.length).fill(4);
+  chart.update('none');
+});
+
+document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+  const canvasImg = document.getElementById('orderDoughnutChart').toDataURL('image/png', 1.0);
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const imgProps = pdf.getImageProperties(canvasImg);
+  const pdfWidth = pageWidth * 0.8;
+  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  pdf.setTextColor('#003366');
+  pdf.setFontSize(26);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Аналитика заказов', pageWidth / 2, 40, { align: 'center' });
+  pdf.addImage(canvasImg, 'PNG', (pageWidth - pdfWidth) / 2, 70, pdfWidth, pdfHeight);
+  pdf.save('order_analytics.pdf');
+});
+
+document.querySelectorAll('tr.order-summary').forEach(row => {
+  row.addEventListener('click', () => {
+    const id = row.getAttribute('data-order-id');
+    const detailRow = document.getElementById('details-' + id);
+    detailRow.style.display = (detailRow.style.display === 'table-row') ? 'none' : 'table-row';
+  });
+});
+</script>
+{% endblock %}

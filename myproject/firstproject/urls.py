@@ -1,37 +1,41 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
+
+# Импортируем обычные views
 from .views import (
     login_view, logout_view, register_view,
     admin_page, manager_page, client_page,
     admin_users_list, admin_user_create, admin_user_edit,
     admin_user_delete, admin_user_toggle_block,
-    book_catalog,
-    book_create,
-    book_edit,
-    book_delete,
-    book_detail,
-    promotions_list,
-    promotion_create,
-    promotion_edit,
-    promotion_delete,
-    promotion_books_select,
-    promotion_books_list,
-    client_book_catalog,
-    add_to_cart,
-    add_to_favorites,
-    client_promotion_books,
-    clients_book_detail,
-    favorites_view,
-    client_profile_view,
-    balance_view,
-    clear_balance_history,
-    ajax_get_user_cards,
-    manager_order_edit,
-    order_checkout_view
+    book_catalog, book_create, book_edit, book_delete, book_detail,
+    promotions_list, promotion_create, promotion_edit, promotion_delete,
+    promotion_books_select, promotion_books_list,
+    client_book_catalog, add_to_cart, add_to_favorites,
+    client_promotion_books, clients_book_detail, favorites_view,
+    client_profile_view, balance_view, clear_balance_history,
+    ajax_get_user_cards, manager_order_edit, order_checkout_view,
+    cart_view, export_excel, client_support_chat, manager_support_page,
+    manager_chat_detail, delete_chat, delete_message, edit_message,
+    mark_as_read, restore_login_view, set_new_password_view,
+    manager_order_list, manager_order_delete, client_order_history,
+    clear_order_history, manager_order_analytics, analytics_view,
+    admin_design  # Добавлен недостающий импорт
 )
 
-urlpatterns = [
+# Импортируем API ViewSets
+from .views import BookViewSet, OrderViewSet, PromotionViewSet
 
+# API роутер
+router = DefaultRouter()
+router.register(r'books', BookViewSet)
+router.register(r'orders', OrderViewSet)
+router.register(r'promotions', PromotionViewSet)
+
+urlpatterns = [
+    # API - ПЕРВЫМ!
+    path('api/', include(router.urls)),
+    
     # Админка: акции
     path('admin/promotions/', promotions_list, name='promotions_list'),
     path('admin/promotions/add/', promotion_create, name='promotion_create'),
@@ -77,7 +81,7 @@ urlpatterns = [
     path('profile/', client_profile_view, name='client_profile'),
     path('balance/', balance_view, name='balance'),
     path('balance/clear-history/', clear_balance_history, name='clear_balance_history'),
-    path('ajax/get_user_cards/', ajax_get_user_cards, name='ajax_get_user_cards'),
+    path('ajax/get_user_cards/', views.ajax_get_user_cards, name='ajax_get_user_cards'),
     path('export/excel/', views.export_excel, name='export_excel'),
 
     # Поддержка и чат

@@ -52,6 +52,26 @@ from django.contrib import messages
 from django.forms import inlineformset_factory
 from .models import Order, OrderItem, Book
 from .forms import OrderForm, OrderItemForm
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .models import Book, Order, Promotion
+from .serializers import BookSerializer, OrderSerializer, PromotionSerializer
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+class PromotionViewSet(viewsets.ModelViewSet):
+    queryset = Promotion.objects.all()
+    serializer_class = PromotionSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
 
 
 def is_manager(user):
@@ -685,16 +705,28 @@ def export_excel(request):
     response['Content-Disposition'] = 'attachment; filename="operations_history.xlsx"'
     return response
 
+from django.db import transaction
+from django.db.models import Q
+from decimal import Decimal
+# ... другие импорты
+
 @login_required
 def balance_view(request):
     user = request.user
     cards = Card.objects.filter(user=user)
-    active_card = cards.filter(is_active=True).first()
-    if not active_card and cards.exists():
-        cards.update(is_active=False)
-        active_card = cards.first()
-        active_card.is_active = True
-        active_card.save()
+    
+    # ✅ Функция для обновления активной карты и баланса
+    def update_active_card():
+        active_card = cards.filter(is_active=True).first()
+        if not active_card and cards.exists():
+            cards.update(is_active=False)
+            active_card = cards.first()
+            active_card.is_active = True
+            active_card.save()
+        return active_card
+
+    active_card = update_active_card()
+
     balance = None
     if active_card:
         balance, _ = Balance.objects.get_or_create(user=user, card=active_card, defaults={'amount': Decimal('0.00')})
@@ -710,6 +742,7 @@ def balance_view(request):
                 cards.update(is_active=False)
                 new_active_card.is_active = True
                 new_active_card.save()
+                active_card = update_active_card()  # ✅ Обновляем
                 messages.success(request, "Активная карта успешно изменена.")
             except Card.DoesNotExist:
                 messages.error(request, "Выбранная карта не найдена.")
@@ -722,6 +755,7 @@ def balance_view(request):
                 with transaction.atomic():
                     card_to_delete.delete()
                     BalanceOperation.objects.create(from_user=user, operation_type='delete_card', card=None)
+                active_card = update_active_card()  # ✅ Обновляем после удаления
                 messages.success(request, "Карта успешно удалена.")
             except Card.DoesNotExist:
                 messages.error(request, "Карта для удаления не найдена.")
@@ -743,6 +777,7 @@ def balance_view(request):
                         card.save()
                         Balance.objects.get_or_create(user=user, card=card, defaults={'amount': Decimal('0.00')})
                         BalanceOperation.objects.create(from_user=user, operation_type='add_card', card=card)
+                    active_card = update_active_card()  # ✅ Обновляем
                     messages.success(request, "Карта успешно добавлена и активирована.")
                     return redirect('balance')
                 except Exception:
@@ -761,19 +796,22 @@ def balance_view(request):
 
             if deposit_form.is_valid() and deposit_card:
                 amount = deposit_form.cleaned_data['amount']
-                password = deposit_form.cleaned_data['password']
                 try:
                     with transaction.atomic():
-                        balance, _ = Balance.objects.get_or_create(user=user, card=deposit_card)
-                        balance.amount += amount
-                        balance.save()
+                        balance_obj, _ = Balance.objects.get_or_create(user=user, card=deposit_card)
+                        balance_obj.amount += amount
+                        balance_obj.save()
                         BalanceOperation.objects.create(
                             from_user=user,
                             operation_type='deposit',
                             card=deposit_card,
                             amount=amount
                         )
-                    messages.success(request, f"Баланс карты {deposit_card.card_number[-4:]} успешно пополнен на {amount} ₽.")
+                    if deposit_card == active_card:  # ✅ Обновляем баланс только активной карты
+                        balance.amount += amount
+                        balance.save()
+                    active_card = update_active_card()
+                    messages.success(request, f"Баланс карты ****{deposit_card.card_number[-4:]} успешно пополнен на {amount} ₽.")
                     return redirect('balance')
                 except Exception:
                     messages.error(request, "Ошибка при пополнении баланса.")
@@ -781,9 +819,11 @@ def balance_view(request):
                 if not deposit_card:
                     messages.error(request, "Карта для пополнения не выбрана или недействительна.")
 
+        # ✅ ИСПРАВЛЕННАЯ ЛОГИКА ПЕРЕВОДА С ПЕРЕУСТАНОВКОЙ АКТИВНОЙ КАРТЫ
         if 'transfer_submit' in request.POST:
             transfer_form = TransferForm(user, request.POST, prefix='transfer')
-            card_id = request.POST.get('card_id')
+            card_id = request.POST.get('card_id')  # ID карты отправителя из формы
+            
             try:
                 transfer_card = cards.get(id=card_id)
             except Card.DoesNotExist:
@@ -791,49 +831,77 @@ def balance_view(request):
                 messages.error(request, "Выбранная карта для перевода не найдена.")
 
             to_user_card_id = request.POST.get('transfer-to_user_card')
-            if transfer_form.is_valid() and transfer_card:
-                to_user = transfer_form.to_user
+
+            if transfer_form.is_valid() and transfer_card and to_user_card_id:
+                to_user_email = transfer_form.cleaned_data['to_user_email']
                 amount = transfer_form.cleaned_data['amount']
-
+                
                 try:
+                    to_user = User.objects.get(email=to_user_email)
                     recipient_card = Card.objects.get(id=to_user_card_id, user=to_user)
-                except (Card.DoesNotExist, TypeError, ValueError):
-                    messages.error(request, "Выберите карту получателя из списка.")
-                    return redirect('balance')
-
-                try:
-                    with transaction.atomic():
-                        sender_balance = Balance.objects.get(user=user, card=transfer_card)
-                        recipient_balance, _ = Balance.objects.get_or_create(user=to_user, card=recipient_card)
-
-                        if sender_balance.amount < amount:
-                            messages.error(request, "Недостаточно средств на выбранной карте.")
-                        else:
-                            sender_balance.amount -= amount
-                            recipient_balance.amount += amount
-                            sender_balance.save()
-                            recipient_balance.save()
-                            BalanceOperation.objects.create(
-                                from_user=user,
-                                to_user=to_user,
-                                operation_type='transfer',
-                                card=transfer_card,
-                                to_card=recipient_card,
-                                amount=amount
+                except (User.DoesNotExist, Card.DoesNotExist):
+                    transfer_form.add_error('to_user_card', 'Карта получателя не найдена.')
+                else:
+                    try:
+                        with transaction.atomic():
+                            sender_balance = Balance.objects.get(user=user, card=transfer_card)
+                            recipient_balance, _ = Balance.objects.get_or_create(
+                                user=to_user, 
+                                card=recipient_card,
+                                defaults={'amount': Decimal('0.00')}
                             )
-                            messages.success(request, f"Успешно переведено {amount} ₽ пользователю {to_user.email} на карту **** **** **** {recipient_card.card_number[-4:]}.")
-                            return redirect('balance')
-                except Balance.DoesNotExist:
-                    messages.error(request, "Баланс выбранной карты не найден.")
-                except Exception:
-                    messages.error(request, "Ошибка при выполнении перевода.")
+
+                            if sender_balance.amount < amount:
+                                messages.error(request, "Недостаточно средств на выбранной карте.")
+                            else:
+                                sender_balance.amount -= amount
+                                recipient_balance.amount += amount
+                                sender_balance.save()
+                                recipient_balance.save()
+                                
+                                # ✅ ГАРАНТИРОВАННОЕ СОЗДАНИЕ ЗАПИСИ ОПЕРАЦИИ
+                                operation = BalanceOperation.objects.create(
+                                    from_user=user,
+                                    to_user=to_user,
+                                    operation_type='transfer',
+                                    card=transfer_card,
+                                    to_card=recipient_card,
+                                    amount=amount
+                                )
+                                operation.refresh_from_db()  # ✅ Принудительное обновление из БД
+                                
+                                # ✅ КЛЮЧЕВОЕ: ПЕРЕУСТАНОВЛЯЕМ АКТИВНУЮ КАРТУ ОТПРАВИТЕЛЯ
+                                if transfer_card.is_active:
+                                    cards.filter(is_active=True).update(is_active=False)
+                                    transfer_card.is_active = True
+                                    transfer_card.save()
+                                
+                        # ✅ ОБНОВЛЯЕМ ПЕРЕМЕННЫЕ ПОСЛЕ ТРАНЗАКЦИИ
+                        active_card = update_active_card()
+                        if active_card == transfer_card:
+                            balance.amount = sender_balance.amount
+                            balance.save()
+                            
+                        messages.success(request, 
+                            f"✅ Успешно переведено {amount} ₽ на карту {recipient_card.card_holder} "
+                            f"****{recipient_card.card_number[-4:]} ({to_user.email})"
+                        )
+                        return redirect('balance')
+                    except Balance.DoesNotExist:
+                        messages.error(request, "Баланс отправителя не найден.")
+                    except Exception as e:
+                        messages.error(request, f"Ошибка при переводе: {str(e)}")
             else:
                 if not transfer_card:
-                    messages.error(request, "Карта для перевода не выбрана или недействительна.")
+                    messages.error(request, "Выберите карту для перевода.")
+                if not to_user_card_id:
+                    transfer_form.add_error('to_user_card', 'Выберите карту получателя.')
 
+    # ✅ ПРАВИЛЬНЫЙ ФИЛЬТР ИСТОРИИ С ПРИНУДИТЕЛЬНЫМ ОБНОВЛЕНИЕМ
     operations = BalanceOperation.objects.filter(
-        models.Q(from_user=user) | models.Q(to_user=user)
-    ).order_by('-timestamp')
+        Q(from_user=user) | Q(to_user=user)
+    ).select_related('card', 'to_card', 'from_user', 'to_user').order_by('-timestamp')[:100]
+    operations = list(operations)  # ✅ Принудительно загружаем в память
 
     return render(request, 'balance.html', {
         'balance': balance,
@@ -845,12 +913,14 @@ def balance_view(request):
         'operations': operations,
     })
 
-# AJAX endpoint для получения карт пользователя по email
+
+
+
+# AJAX endpoint для получения карт пользователя по email (без изменений)
 @login_required
 @require_GET
 def ajax_get_user_cards(request):
     email = request.GET.get('email')
-    from django.contrib.auth.models import User
     if not email:
         return JsonResponse({'error': 'Email не указан', 'cards': []})
     try:
@@ -858,7 +928,6 @@ def ajax_get_user_cards(request):
     except User.DoesNotExist:
         return JsonResponse({'error': 'Пользователь с таким Email не найден', 'cards': []})
 
-    # Список активных и подтверждённых карт пользователя
     cards = Card.objects.filter(user=user, is_confirmed=True).values('id', 'card_holder', 'card_number')
     cards_list = []
     for card in cards:

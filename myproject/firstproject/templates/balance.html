@@ -374,196 +374,287 @@ p[style*="color:red"], p[style*="color:orange"] {
 </style>
 </head>
 <body>
-<header>
-    <h1>Баланс и карты</h1>
-    <button id="theme-toggle-btn" type="button" aria-pressed="false" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
-</header>
-
-<!-- Canvas для звезд и комет -->
-<canvas id="star-canvas"></canvas>
-
-<!-- SVG для созвездий -->
-<svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
-
-<div class="balance-container" role="main" aria-label="Баланс и карты пользователя">
-    <h1>Баланс: {{ balance.amount|floatformat:2 }} ₽</h1>
-
-    <!-- Карты пользователя -->
-    <h2>Ваши карты</h2>
-    <ul class="cards-list">
-        {% for card in cards %}
-        <li class="{% if active_card and card.id == active_card.id %}active-card{% endif %}">
-            <form method="post" class="card-radio-form" style="margin-bottom:15px;">
-                {% csrf_token %}
-                <label>
-                    <input type="radio" name="active_card" value="{{ card.id }}"
+    <header>
+        <h1>Баланс и карты</h1>
+        <button id="theme-toggle-btn" type="button" aria-pressed="false" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
+    </header>
+    
+    <!-- Canvas для звезд и комет -->
+    <canvas id="star-canvas"></canvas>
+    
+    <!-- SVG для созвездий -->
+    <svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+    
+    <div class="balance-container" role="main" aria-label="Баланс и карты пользователя">
+        <h1>Баланс: {{ balance.amount|floatformat:2 }} ₽</h1>
+    
+        <!-- Карты пользователя -->
+        <h2>Ваши карты</h2>
+        <ul class="cards-list">
+            {% for card in cards %}
+            <li class="{% if active_card and card.id == active_card.id %}active-card{% endif %}">
+                <form method="post" class="card-radio-form" style="margin-bottom:15px;">
+                    {% csrf_token %}
+                    <label>
+                        <input type="radio" name="active_card" value="{{ card.id }}"
                         {% if active_card and card.id == active_card.id %}checked{% endif %}
                         onchange="this.form.submit();">
-                    Выбрать карту
-                </label>
-                <input type="hidden" name="set_active_card" value="1" />
-            </form>
-            <div class="card-info">
-                <div class="card-holder" title="{{ card.card_holder }}">{{ card.card_holder }}</div>
-                <div class="card-number">**** **** **** {{ card.card_number|slice:"-4:" }}</div>
-                <div class="card-expiry">Срок действия: {{ card.expiry_date }}</div>
-            </div>
-            <form method="post" class="card-delete-form" onsubmit="return confirm('Вы действительно хотите удалить эту карту?');" aria-label="Удалить карту {{ card.card_holder }}">
-                {% csrf_token %}
-                <input type="hidden" name="delete_card_submit" value="1" />
-                <input type="hidden" name="delete_card_id" value="{{ card.id }}" />
-                <button type="submit">Удалить</button>
-            </form>
-        </li>
-        {% endfor %}
-    </ul>
-
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {{ card_form.non_field_errors }}
-        <div>
-            {{ card_form.card_number.label_tag }} {{ card_form.card_number }}
-            {% for error in card_form.card_number.errors %}
-                <p style="color:orange;">{{ error }}</p>
+                        Выбрать карту
+                    </label>
+                    <input type="hidden" name="set_active_card" value="1" />
+                </form>
+                <div class="card-info">
+                    <div class="card-holder" title="{{ card.card_holder }}">{{ card.card_holder }}</div>
+                    <div class="card-number">**** **** **** {{ card.card_number|slice:"-4:" }}</div>
+                    <div class="card-expiry">Срок действия: {{ card.expiry_date }}</div>
+                </div>
+                <form method="post" class="card-delete-form" onsubmit="return confirm('Вы действительно хотите удалить эту карту?');" aria-label="Удалить карту {{ card.card_holder }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_card_submit" value="1" />
+                    <input type="hidden" name="delete_card_id" value="{{ card.id }}" />
+                    <button type="submit">Удалить</button>
+                </form>
+            </li>
             {% endfor %}
-        </div>
-        <div>
-            {{ card_form.card_holder.label_tag }} {{ card_form.card_holder }}
-            {% for error in card_form.card_holder.errors %}
-                <p style="color:orange;">{{ error }}</p>
-            {% endfor %}
-        </div>
-        <div>
-            {{ card_form.expiry_date.label_tag }} {{ card_form.expiry_date }}
-            {% for error in card_form.expiry_date.errors %}
-                <p style="color:orange;">{{ error }}</p>
-            {% endfor %}
-        </div>
-        <div>
-            {{ card_form.cvv.label_tag }} {{ card_form.cvv }}
-            {% for error in card_form.cvv.errors %}
-                <p style="color:orange;">{{ error }}</p>
-            {% endfor %}
-        </div>
-        <button type="submit" name="add_card_submit">Добавить карту</button>
-    </form>
-
-    <h2>Пополнение баланса</h2>
-    {% if not active_card %}
-        <p style="color:red; text-align:center;">Сначала выберите или добавьте карту.</p>
-    {% endif %}
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {{ deposit_form.amount.label_tag }} {{ deposit_form.amount }}
-        {{ deposit_form.password.label_tag }} {{ deposit_form.password }}
-        <input type="hidden" name="card_id" value="{% if active_card %}{{ active_card.id }}{% endif %}" />
-        <button type="submit" name="deposit_submit" {% if not active_card %}disabled{% endif %}>Пополнить на выбранную карту</button>
-        {% for error in deposit_form.non_field_errors %}
-            <p style="color:red;">{{ error }}</p>
-        {% endfor %}
-        {% for field in deposit_form %}
-            {% for error in field.errors %}
-                <p style="color:red;">{{ error }}</p>
-            {% endfor %}
-        {% endfor %}
-    </form>
-
-    <h2>Перевод средств другому пользователю</h2>
-    {% if not active_card %}
-        <p style="color:red; text-align:center;">Сначала выберите или добавьте карту.</p>
-    {% endif %}
-    <form method="post" novalidate id="transferForm">
-        {% csrf_token %}
-        {{ transfer_form.to_user_email.label_tag }} {{ transfer_form.to_user_email }}<br />
-        <label for="id_to_user_card">Карта получателя</label>
-        <select name="transfer-to_user_card" id="id_to_user_card" disabled>
-            <option value="">Сначала введите Email получателя</option>
-        </select><br />
-        {{ transfer_form.amount.label_tag }} {{ transfer_form.amount }}
-        {{ transfer_form.password.label_tag }} {{ transfer_form.password }}
-        <input type="hidden" name="card_id" value="{% if active_card %}{{ active_card.id }}{% endif %}" />
-        <button type="submit" name="transfer_submit" {% if not active_card %}disabled{% endif %}>Перевести с выбранной карты</button>
-        {% for error in transfer_form.non_field_errors %}
-            <p style="color:red;">{{ error }}</p>
-        {% endfor %}
-        {% for field in transfer_form %}
-            {% for error in field.errors %}
-                <p style="color:red;">{{ error }}</p>
-            {% endfor %}
-        {% endfor %}
-    </form>
-
-    <div class="buttons-row">
-        <a href="{% url 'client_page' %}" class="btn-back" role="button" aria-label="Вернуться на главную">Вернуться на главную</a>
-        <form method="post" action="{% url 'clear_balance_history' %}" onsubmit="return confirm('Вы действительно хотите очистить историю операций?');" style="display:inline;">
+        </ul>
+    
+        <form method="post" novalidate>
             {% csrf_token %}
-            <button type="submit">Очистить историю</button>
+            {{ card_form.non_field_errors }}
+            <div>
+                {{ card_form.card_number.label_tag }} {{ card_form.card_number }}
+                {% for error in card_form.card_number.errors %}
+                    <p style="color:orange;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div>
+                {{ card_form.card_holder.label_tag }} {{ card_form.card_holder }}
+                {% for error in card_form.card_holder.errors %}
+                    <p style="color:orange;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div>
+                {{ card_form.expiry_date.label_tag }} {{ card_form.expiry_date }}
+                {% for error in card_form.expiry_date.errors %}
+                    <p style="color:orange;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div>
+                {{ card_form.cvv.label_tag }} {{ card_form.cvv }}
+                {% for error in card_form.cvv.errors %}
+                    <p style="color:orange;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <button type="submit" name="add_card_submit">Добавить карту</button>
         </form>
-    </div>
-
-    <h2>История операций</h2>
-    <div class="buttons-row" style="margin-bottom: 20px;">
-        <form method="get" action="{% url 'export_excel' %}" style="display:inline; margin-left: 10px;">
-          <button type="submit">Экспорт в Excel</button>
-        </form>
-    </div>       
-    <table id="operationsTable" aria-label="История операций">
-        <thead>
-            <tr>
-                <th>Дата и время</th>
-                <th>Тип операции</th>
-                <th>Карта</th>
-                <th>От кого</th>
-                <th>Кому</th>
-                <th>Сумма</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for op in operations %}
-            <tr>
-                <td>{{ op.timestamp|date:"Y-m-d H:i" }}</td>
-                <td>{{ op.get_operation_type_display }}</td>
-                <td>
-                    {% if op.card %}
-                        **** **** **** {{ op.card.card_number|slice:"-4:" }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    {% if op.from_user %}
-                        {{ op.from_user.email }}
-                        {% if op.card %}
-                            (**** **** **** {{ op.card.card_number|slice:"-4:" }})
-                        {% endif %}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    {% if op.to_user %}
-                        {{ op.to_user.email }}
-                        {% if op.to_card %}
-                            (**** **** **** {{ op.to_card.card_number|slice:"-4:" }})
-                        {% endif %}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    {% if op.operation_type in 'add_card delete_card' %}
-                        -
-                    {% else %}
-                        {{ op.amount|floatformat:2 }} ₽
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" style="text-align:center; color:#888;">История операций пуста</td></tr>
+    
+        <h2>Пополнение баланса</h2>
+        {% if not active_card %}
+            <p style="color:red; text-align:center;">Сначала выберите или добавьте карту.</p>
+        {% endif %}
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ deposit_form.amount.label_tag }} {{ deposit_form.amount }}
+            {{ deposit_form.password.label_tag }} {{ deposit_form.password }}
+            <input type="hidden" name="card_id" value="{% if active_card %}{{ active_card.id }}{% endif %}" />
+            <button type="submit" name="deposit_submit" {% if not active_card %}disabled{% endif %}>Пополнить на выбранную карту</button>
+            {% for error in deposit_form.non_field_errors %}
+                <p style="color:red;">{{ error }}</p>
             {% endfor %}
-        </tbody>
-    </table>
+            {% for field in deposit_form %}
+                {% for error in field.errors %}
+                    <p style="color:red;">{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </form>
+    
+        <!-- форма перевода -->
+        <h2>Перевод средств</h2>
+        {% if not active_card %}
+            <p style="color:red; text-align:center;">Сначала выберите или добавьте карту.</p>
+        {% endif %}
+        <form method="post" novalidate id="transferForm">
+            {% csrf_token %}
+            <input type="hidden" name="card_id" value="{% if active_card %}{{ active_card.id }}{% endif %}" />
+            
+            <div>
+                {{ transfer_form.to_user_email.label_tag }} {{ transfer_form.to_user_email }}
+                {% for error in transfer_form.to_user_email.errors %}
+                    <p style="color:red;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <div>
+                <label for="id_transfer-to_user_card">Карта получателя</label>
+                <select name="transfer-to_user_card" id="id_transfer-to_user_card" disabled>
+                    <option value="">Сначала введите Email получателя</option>
+                </select>
+                <div id="transfer_to_user_card_errors" style="color:red;"></div>
+            </div>
+            
+            <div>
+                {{ transfer_form.amount.label_tag }} {{ transfer_form.amount }}
+                {% for error in transfer_form.amount.errors %}
+                    <p style="color:red;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <div>
+                {{ transfer_form.password.label_tag }} {{ transfer_form.password }}
+                {% for error in transfer_form.password.errors %}
+                    <p style="color:red;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            {% for error in transfer_form.non_field_errors %}
+                <p style="color:red;">{{ error }}</p>
+            {% endfor %}
+            
+            <button type="submit" name="transfer_submit" {% if not active_card %}disabled{% endif %}>Перевести с выбранной карты</button>
+        </form>
+    
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const emailInput = document.querySelector('input[name="transfer-to_user_email"]');
+            const cardSelect = document.getElementById('id_transfer-to_user_card');
+            const errorsDiv = document.getElementById('transfer_to_user_card_errors');
+    
+            function clearCards() {
+                cardSelect.innerHTML = '<option value="">Сначала введите Email получателя</option>';
+                cardSelect.disabled = true;
+                errorsDiv.innerHTML = '';
+            }
+    
+            function fetchCards(email) {
+                if (!email) {
+                    clearCards();
+                    return;
+                }
+                fetch(`/ajax/get_user_cards/?email=${encodeURIComponent(email)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        cardSelect.innerHTML = '<option value="">Выберите карту</option>';
+                        errorsDiv.innerHTML = '';
+                        if (data.cards && data.cards.length > 0) {
+                            data.cards.forEach(card => {
+                                const option = document.createElement('option');
+                                option.value = card.id;
+                                option.textContent = `${card.card_holder} ****${card.last4}`;
+                                cardSelect.appendChild(option);
+                            });
+                            cardSelect.disabled = false;
+                        } else {
+                            cardSelect.innerHTML = '<option value="">Карт получателя не найдено</option>';
+                            cardSelect.disabled = true;
+                        }
+                    })
+                    .catch(() => {
+                        cardSelect.innerHTML = '<option value="">Ошибка загрузки карт</option>';
+                        cardSelect.disabled = true;
+                    });
+            }
+    
+            if (emailInput) {
+                emailInput.addEventListener('input', function () {
+                    const email = emailInput.value.trim();
+                    fetchCards(email);
+                });
+                // Инициализация при загрузке
+                fetchCards(emailInput.value.trim());
+            }
+    
+            const form = document.getElementById('transferForm');
+            form.addEventListener('submit', function(e) {
+                if (!cardSelect.value || cardSelect.value === '') {
+                    e.preventDefault();
+                    errorsDiv.innerHTML = 'Выберите карту получателя';
+                    return false;
+                }
+            });
+        });
+        </script>
+    
+        <!-- ✅ ПЕРВАЯ ГРУППА КНОПОК (перед историей) -->
+<div class="buttons-row">
+    <a href="{% url 'client_page' %}" class="btn-back btn-secondary" role="button" aria-label="Вернуться на главную">
+        Вернуться на главную
+    </a>
+    <form method="post" action="{% url 'clear_balance_history' %}" 
+          style="display: inline-block; margin-left: 10px;" 
+          onsubmit="return confirm('Вы действительно хотите очистить историю операций?');">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger">Очистить историю</button>
+    </form>
 </div>
+
+<h2>История операций</h2>
+
+<!-- ✅ ВТОРАЯ ГРУППА КНОПОК (экспорт) -->
+<div class="buttons-row" style="margin-bottom: 20px;">
+    <form method="get" action="{% url 'export_excel' %}" style="display: inline-block;">
+        <button type="submit" class="btn-success">Экспорт в Excel</button>
+    </form>
+</div>
+       
+        <table id="operationsTable" aria-label="История операций">
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Тип операции</th>
+                    <th>Карта</th>
+                    <th>От кого</th>
+                    <th>Кому</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for op in operations %}
+                <tr>
+                    <td>{{ op.timestamp|date:"Y-m-d H:i" }}</td>
+                    <td>{{ op.get_operation_type_display }}</td>
+                    <td>
+                        {% if op.card %}
+                            **** **** **** {{ op.card.card_number|slice:"-4:" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if op.from_user %}
+                            {{ op.from_user.email }}
+                            {% if op.card %}
+                                (**** **** **** {{ op.card.card_number|slice:"-4:" }})
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if op.to_user %}
+                            {{ op.to_user.email }}
+                            {% if op.to_card %}
+                                (**** **** **** {{ op.to_card.card_number|slice:"-4:" }})
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if op.operation_type in 'add_card delete_card' %}
+                            -
+                        {% else %}
+                            {{ op.amount|floatformat:2 }} ₽
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center; color:#888;">История операций пуста</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    
 
 <script>
 // Основные переменные

@@ -1,0 +1,13 @@
+prefix=f:/WUDownloadCache/Работа/Курсовая2/BookHaven/.conda/Library
+exec_prefix=f:/WUDownloadCache/Работа/Курсовая2/BookHaven/.conda/Library
+libdir=f:/WUDownloadCache/Работа/Курсовая2/BookHaven/.conda/Library/lib
+sharedlibdir=f:/WUDownloadCache/Работа/Курсовая2/BookHaven/.conda/Library/lib
+includedir=f:/WUDownloadCache/Работа/Курсовая2/BookHaven/.conda/Library/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.3.1
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}Отзывы к посту - {{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Пост -->
+            <div class="glass-card p-5 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <span class="platform-badge {{ post.platform }}-badge me-3">{{ post.get_platform_display }}</span>
+                        <h3 class="d-inline fw-bold mb-0">{{ post.title }}</h3>
+                    </div>
+                    <a href="{% url 'manager_social_page' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Назад
+                    </a>
+                </div>
+                {% if post.image %}
+                <img src="{{ post.image.url }}" class="img-fluid rounded mb-4" style="height: 250px; object-fit: cover;">
+                {% endif %}
+                <p class="lead">{{ post.content }}</p>
+                <div class="d-flex gap-3 mt-4">
+                    <span class="badge bg-primary fs-6">👁️ {{ post.views }}</span>
+                    <span class="badge bg-success fs-6">❤️ {{ post.likes }}</span>
+                    <span class="badge bg-info fs-6">💬 {{ post.comments }}</span>
+                </div>
+            </div>
+
+            <!-- Отзывы -->
+            <div class="glass-card p-5">
+                <h4 class="fw-bold mb-4">
+                    💬 Отзывы ({{ reviews|length }})
+                    <span class="badge bg-warning ms-2">{{ avg_rating|floatformat:1 }}/5 ⭐</span>
+                </h4>
+                
+                {% if reviews %}
+                <div class="row g-4">
+                    {% for review in reviews %}
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <strong class="me-3">{{ review.client.username }}</strong>
+                                        <span class="badge bg-warning fs-6">{{ review.rating }}⭐</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReviewManager({{ review.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <p class="mb-3">{{ review.text }}</p>
+                                <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+                                
+                                {% if review.reply_text %}
+                                <div class="bg-success-subtle p-3 rounded mt-3">
+                                    <strong class="text-success">✅ Ваш ответ:</strong>
+                                    <div class="mt-2">{{ review.reply_text }}</div>
+                                    <small class="text-success">{{ review.replied_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                                {% else %}
+                                <button class="btn btn-outline-primary btn-sm mt-2 w-100" onclick="replyReview({{ review.id }}, '{{ review.client.username }}')">
+                                    📝 Ответить
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-4"></i>
+                    <h5 class="text-muted">Отзывов пока нет</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка ответа -->
+<div class="modal fade" id="replyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ответ клиенту</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="reply-form">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="reply_review_id" name="review_id">
+                    <strong id="review_client_name"></strong>
+                    <textarea name="reply_text" class="form-control mt-2" rows="4" placeholder="Ваш ответ..." required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">📤 Отправить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteReviewManager(reviewId) {
+    if (confirm('Удалить отзыв?')) {
+        fetch(`/delete_review_manager/${reviewId}/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        }).then(() => location.reload());
+    }
+}
+
+function replyReview(reviewId, clientName) {
+    document.getElementById('reply_review_id').value = reviewId;
+    document.getElementById('review_client_name').textContent = clientName + ': ';
+    new bootstrap.Modal(document.getElementById('replyModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const replyForm = document.getElementById('reply-form');
+    if (replyForm) {
+        replyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const reviewId = document.getElementById('reply_review_id').value;
+            
+            fetch(`/reply_review/${reviewId}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': getCookie('csrftoken')}
+            }).then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Ошибка!');
+                }
+            });
+        });
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Создать документ{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="glass-card shadow-xl p-5 mb-5">
+                <div class="text-center mb-5">
+                    <h1 class="fw-bold text-primary mb-3"><i class="fas fa-file-alt me-3"></i>📄 Новый документ</h1>
+                    <p class="lead text-muted">Заполните информацию для создания профессионального документа</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Тип документа -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Тип документа <span class="text-danger">*</span></label>
+                            <select name="type" class="form-select form-select-lg" required>
+                                <option value="">Выберите тип...</option>
+                                <option value="contract">📋 Договор</option>
+                                <option value="invoice">💰 Счет</option>
+                                <option value="act">✍️ Акт выполненных работ</option>
+                                <option value="certificate">🏆 Сертификат</option>
+                                <option value="estimate">📈 Смета</option>
+                                <option value="receipt">✅ Чек</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Название <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control form-control-lg" placeholder="Договор №123 от 15.12.2025" required>
+                        </div>
+                    </div>
+
+                    <!-- Клиент -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Имя клиента <span class="text-danger">*</span></label>
+                            <input type="text" name="client_name" class="form-control form-control-lg" placeholder="Иванов Иван Иванович" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="client_email" class="form-control form-control-lg" placeholder="ivanov@example.com" required>
+                        </div>
+                    </div>
+
+                    <!-- Контакты и сумма -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Телефон</label>
+                            <input type="tel" name="client_phone" class="form-control form-control-lg" placeholder="+7 (999) 123-45-67">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Сумма (₽)</label>
+                            <input type="number" name="amount" step="0.01" class="form-control form-control-lg text-end" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <!-- Доп. информация и файл -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Дополнительная информация</label>
+                            <textarea name="content" rows="4" class="form-control" placeholder="Условия, примечания, комментарии..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Файл документа (PDF, DOCX, PNG)</label>
+                            <input type="file" name="file" class="form-control form-control-lg" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                            <small class="text-muted">Необязательно - можно добавить готовый файл</small>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'manager_documents' %}" class="btn btn-outline-secondary btn-lg px-5">
+                            <i class="fas fa-arrow-left me-2"></i>Назад
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg px-5 shadow-lg">
+                            <i class="fas fa-file-alt me-2"></i>Создать документ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

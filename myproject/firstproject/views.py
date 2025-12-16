@@ -12,7 +12,10 @@ from .forms import (
     RegistrationForm, UserAdminForm, BookForm,
     PromotionForm, ClientProfileForm, ClientPasswordChangeForm,
     DepositForm, TransferForm, CardForm,
+    SocialPostForm, SocialLinkForm, ReviewForm,
+    ManagerSocialPostForm,
 )
+
 from .models import (
      Book, Promotion, PromotionBook, BookReview, ReviewReaction,
     CartItem, Favorite, Balance, BalanceOperation, Card, Chat, Message,
@@ -56,6 +59,512 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Book, Order, Promotion
 from .serializers import BookSerializer, OrderSerializer, PromotionSerializer
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods, require_POST
+from django.utils import timezone
+from .models import Profile, SocialLink, SocialPost
+import json
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.db.models import Count, Avg
+from .models import SocialLink, SocialPost
+from .forms import SocialPostForm, SocialLinkForm
+import json
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.db.models import Count, Avg, Sum
+from .models import SocialLink, SocialPost, SocialPostView, Profile
+from .forms import SocialPostForm, SocialLinkForm
+import json
+from django.views.decorators.csrf import csrf_exempt
+from .models import SocialPost, SocialLink, SocialPostView, Review
+from .forms import SocialPostForm, SocialLinkForm, ReviewForm
+from .forms import SocialPostForm, SocialLinkForm, ReviewForm, ManagerSocialPostForm, ManagerReplyForm
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from .models import Document
+import os
+
+
+
+def is_client(user):
+    try:
+        return hasattr(user, 'profile') and user.profile.role == 'client'
+    except:
+        return False
+
+
+def is_manager(user):
+    try:
+        return hasattr(user, 'profile') and user.profile.role == 'manager'
+    except:
+        return False
+
+
+def is_admin(user):
+    try:
+        return hasattr(user, 'profile') and user.profile.role == 'admin'
+    except:
+        return False
+    
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Document
+
+@login_required
+def manager_documents(request):
+    documents = Document.objects.filter(created_by=request.user).order_by('-date')[:20]
+    context = {
+        'documents': documents,
+        'total_docs': documents.count()
+    }
+    return render(request, 'manager_documents.html', context)
+
+
+@login_required
+def document_create(request):
+    if request.method == 'POST':
+        doc = Document(
+            title=request.POST['title'],
+            type=request.POST['type'],
+            client_name=request.POST['client_name'],
+            client_email=request.POST['client_email'],
+            client_phone=request.POST.get('client_phone', ''),
+            amount=request.POST.get('amount') or None,
+            content=request.POST.get('content', ''),
+            created_by=request.user
+        )
+        if 'file' in request.FILES:
+            doc.file = request.FILES['file']
+        doc.save()
+        messages.success(request, '✅ Документ успешно создан!')
+        return redirect('manager_documents')
+    
+    return render(request, 'document_create.html')
+
+
+@login_required
+def document_detail(request, pk):
+    doc = get_object_or_404(Document, pk=pk, created_by=request.user)
+    return render(request, 'document_detail.html', {'doc': doc})
+
+
+@login_required
+def document_edit(request, pk):
+    doc = get_object_or_404(Document, pk=pk, created_by=request.user)
+    
+    if request.method == 'POST':
+        doc.title = request.POST['title']
+        doc.type = request.POST['type']
+        doc.client_name = request.POST['client_name']
+        doc.client_email = request.POST['client_email']
+        doc.client_phone = request.POST.get('client_phone', '')
+        doc.amount = request.POST.get('amount') or None
+        doc.content = request.POST.get('content', '')
+        
+        if 'file' in request.FILES:
+            # Удаляем старый файл если есть
+            if doc.file and os.path.exists(doc.file.path):
+                os.remove(doc.file.path)
+            doc.file = request.FILES['file']
+        
+        doc.save()
+        messages.success(request, '✅ Документ обновлен!')
+        return redirect('manager_documents')
+    
+    return render(request, 'document_edit.html', {'doc': doc})
+
+
+@login_required
+def document_delete(request, pk):
+    if request.method == 'POST':
+        doc = get_object_or_404(Document, pk=pk, created_by=request.user)
+        if doc.file and os.path.exists(doc.file.path):
+            os.remove(doc.file.path)
+        doc.delete()
+        return JsonResponse({'status': 'success', 'message': 'Документ удален!'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+
+
+
+
+
+
+
+@login_required
+@user_passes_test(is_client)
+def client_social_page(request, platform_filter=None):
+    social_links, created = SocialLink.objects.get_or_create(user=request.user)
+    
+    # ✅ ФИКСИРОВАНИЕ ПРОСМОТРОВ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+    all_posts_query = SocialPost.objects.filter(is_published=True).order_by('-created_at')
+    if platform_filter:
+        all_posts_query = all_posts_query.filter(platform=platform_filter)
+    
+    all_posts = all_posts_query.prefetch_related('reviews')[:20]
+    
+    # ✅ Увеличиваем счетчики просмотров
+    for post in all_posts:
+        SocialPostView.objects.get_or_create(post=post, client=request.user)
+        if SocialPostView.objects.filter(post=post, client=request.user).count() == 1:
+            post.unique_views += 1
+        post.views += 1
+        post.save(update_fields=['views', 'unique_views'])
+    
+    my_posts = SocialPost.objects.filter(client=request.user, is_published=True).order_by('-created_at')
+    if platform_filter:
+        my_posts = my_posts.filter(platform=platform_filter)
+    
+    # Подготавливаем данные об отзывах
+    posts_with_reviews = []
+    for post in all_posts:
+        client_reviews = post.reviews.filter(client=request.user)
+        posts_with_reviews.append({
+            'post': post,
+            'client_reviews': client_reviews,
+            'has_reviews': client_reviews.exists()
+        })
+    
+    context = {
+        'social_links': social_links,
+        'my_posts': my_posts,
+        'all_posts_with_reviews': posts_with_reviews,
+        'platform_filter': platform_filter,
+        'platforms': SocialPost.PLATFORMS,
+    }
+    
+    return render(request, 'client_social.html', context)
+
+
+@require_POST
+@login_required
+@user_passes_test(is_client)
+def like_post(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, is_published=True)
+    post.likes += 1
+    post.save(update_fields=['likes'])
+    return JsonResponse({'status': 'success', 'likes': post.likes})
+
+@require_POST
+@login_required
+@user_passes_test(is_client)
+def add_review(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, is_published=True)
+    
+    if Review.objects.filter(post=post, client=request.user).exists():
+        return JsonResponse({'status': 'error', 'message': 'Вы уже оставляли отзыв!'}, status=400)
+    
+    form = ReviewForm(request.POST)
+    if form.is_valid():
+        review = form.save(commit=False)
+        review.post = post
+        review.client = request.user
+        review.save()
+        post.comments += 1
+        post.save(update_fields=['comments'])
+        return JsonResponse({
+            'status': 'success', 
+            'review_id': review.id,
+            'text': review.text[:50] + '...' if len(review.text) > 50 else review.text,
+            'rating': review.rating,
+        })
+    return JsonResponse({'status': 'error'}, status=400)
+
+@require_POST
+@login_required
+@user_passes_test(is_client)
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, client=request.user)
+    post = review.post
+    review.delete()
+    post.comments = post.reviews.count()
+    post.save(update_fields=['comments'])
+    return JsonResponse({'status': 'success'})
+
+# ✅ ✅ ✅ МЕНЕДЖЕРСКАЯ СТРАНИЦА ✅ ✅ ✅
+@login_required
+@user_passes_test(is_manager)
+def manager_social_page(request, platform_filter=None):
+    social_links, created = SocialLink.objects.get_or_create(user=request.user)
+    
+    posts_query = SocialPost.objects.filter(manager=request.user)
+    if platform_filter:
+        posts_query = posts_query.filter(platform=platform_filter)
+    
+    recent_posts = posts_query.prefetch_related('reviews').order_by('-created_at')[:12]
+    
+    all_reviews = Review.objects.filter(post__manager=request.user).select_related('post', 'client', 'manager_reply').order_by('-created_at')
+    
+    stats = {
+        'total_posts': posts_query.count(),
+        'total_views': posts_query.aggregate(Sum('views'))['views__sum'] or 0,
+        'total_likes': posts_query.aggregate(Sum('likes'))['likes__sum'] or 0,
+        'total_comments': all_reviews.count(),
+        'avg_rating': all_reviews.aggregate(Avg('rating'))['rating__avg'] or 0,
+    }
+    
+    context = {
+        'social_links': social_links,
+        'recent_posts': recent_posts,
+        'all_reviews': all_reviews,
+        'stats': stats,
+        'platform_filter': platform_filter,
+        'platforms': SocialPost.PLATFORMS,
+    }
+    return render(request, 'manager_social.html', context)
+
+
+@require_POST
+@login_required
+@user_passes_test(is_manager)
+def reply_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, post__manager=request.user)
+    
+    if review.manager_reply:
+        return JsonResponse({'status': 'error', 'message': 'Уже отвечено!'}, status=400)
+    
+    form = ManagerReplyForm(request.POST, instance=review)
+    if form.is_valid():
+        review.manager_reply = request.user
+        review.reply_text = form.cleaned_data['reply_text']
+        review.replied_at = timezone.now()
+        review.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@require_POST
+@login_required
+@user_passes_test(is_manager)
+def delete_review_manager(request, review_id):
+    review = get_object_or_404(Review, id=review_id, post__manager=request.user)
+    post = review.post
+    review.delete()
+    post.comments = post.reviews.count()
+    post.save(update_fields=['comments'])
+    return JsonResponse({'status': 'success'})
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_social_page(request, platform_filter=None):
+    social_links, created = SocialLink.objects.get_or_create(user=request.user)
+    
+    # Фильтр по платформе
+    posts_query = SocialPost.objects.filter(is_published=True)
+    if platform_filter:
+        posts_query = posts_query.filter(platform=platform_filter)
+    
+    all_posts = posts_query.order_by('-created_at')
+    
+    # ✅ ИСПРАВЛЕНО: статистика по клиентам
+    client_stats = SocialPost.objects.filter(is_published=True).values('client__username').annotate(
+        posts_count=Count('id'),
+        avg_views=Avg('views'),
+        avg_likes=Avg('likes'),
+        total_views=Sum('views'),
+        total_likes=Sum('likes')
+    ).order_by('-posts_count')[:10]
+    
+    # ✅ ИСПРАВЛЕНО: статистика по менеджерам (ДОБАВЛЕНО)
+    manager_stats = SocialPost.objects.filter(is_published=True).values('manager__username').annotate(
+        posts_count=Count('id'),
+        avg_views=Avg('views'),
+        avg_likes=Avg('likes'),
+        total_views=Sum('views'),
+        total_likes=Sum('likes')
+    ).order_by('-posts_count')[:10]
+    
+    # ✅ ИСПРАВЛЕНО: статистика отзывов БЕЗ sentiment (используем rating)
+    reviews_stats = Review.objects.aggregate(
+        total_reviews=Count('id'),
+        avg_rating=Avg('rating'),
+        five_star_reviews=Count('id', filter=Q(rating=5)),
+        four_plus_reviews=Count('id', filter=Q(rating__gte=4)),
+        three_star_reviews=Count('id', filter=Q(rating=3))
+    )
+    
+    stats = {
+        'total_posts': all_posts.count(),
+        'published_posts': all_posts.count(),
+        'vk_posts': all_posts.filter(platform='vk').count(),
+        'today_posts': all_posts.filter(created_at__date=timezone.now().date()).count(),
+        'total_views': all_posts.aggregate(Sum('views'))['views__sum'] or 0,
+        'total_likes': all_posts.aggregate(Sum('likes'))['likes__sum'] or 0,
+        'client_stats': list(client_stats),
+        'manager_stats': list(manager_stats),  # ✅ ДОБАВЛЕНО
+        'reviews_stats': reviews_stats,
+        'platform_stats': all_posts.values('platform').annotate(
+            count=Count('id'),
+            avg_views=Avg('views'),
+            avg_likes=Avg('likes')
+        )
+    }
+    
+    context = {
+        'social_links': social_links,
+        'all_posts': all_posts[:24],  # ✅ ОГРАНИЧИЛИМ количество постов
+        'stats': stats,
+        'platform_filter': platform_filter,
+        'platforms': SocialPost.PLATFORMS,
+    }
+    return render(request, 'admin_social.html', context)
+
+
+@login_required
+@user_passes_test(is_manager)
+def social_post_list(request):
+    posts = SocialPost.objects.filter(manager=request.user).order_by('-created_at')
+    return render(request, 'social_posts_list.html', {'posts': posts})
+
+
+@login_required
+@user_passes_test(is_manager)
+def social_post_create(request):
+    clients = User.objects.filter(profile__role='client')
+    
+    if request.method == 'POST':
+        form = ManagerSocialPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.manager = request.user
+            if clients.exists():
+                post.client = clients.first()
+            post.save()
+            messages.success(request, '✅ Пост успешно создан!')
+            return redirect('manager_social_page')
+    else:
+        form = ManagerSocialPostForm()
+    
+    context = {'form': form, 'action': 'Создать', 'clients': clients}
+    return render(request, 'social_post_form.html', context)
+
+
+@login_required
+@user_passes_test(is_manager)
+def social_post_edit(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, manager=request.user)
+    
+    if request.method == 'POST':
+        form = ManagerSocialPostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✅ Пост обновлен!')
+            return redirect('manager_social_page')
+    else:
+        form = ManagerSocialPostForm(instance=post)
+    
+    context = {'form': form, 'post': post, 'action': 'Редактировать'}
+    return render(request, 'social_post_form.html', context)
+
+
+@require_POST
+@login_required
+@user_passes_test(is_manager)
+def social_post_delete(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, manager=request.user)
+    post_title = post.title
+    post.delete()
+    messages.success(request, f'🗑️ Пост "{post_title}" удален!')
+    return JsonResponse({'status': 'success', 'message': 'Пост удален!'})
+
+@login_required
+@user_passes_test(is_admin)
+def social_stats(request):
+    posts = SocialPost.objects.filter(is_published=True)
+    
+    stats = {
+        'total': posts.count(),
+        'vk': posts.filter(platform='vk').count(),
+        'telegram': posts.filter(platform='telegram').count(),
+        'instagram': posts.filter(platform='instagram').count(),
+        'youtube': posts.filter(platform='youtube').count(),
+        'avg_views': posts.aggregate(avg_views=Avg('views'))['avg_views'] or 0,
+        'avg_likes': posts.aggregate(avg_likes=Avg('likes'))['avg_likes'] or 0,
+        'total_views': posts.aggregate(total_views=Sum('views'))['total_views'] or 0,
+        'platform_stats': posts.values('platform').annotate(
+            count=Count('id'),
+            avg_views=Avg('views'),
+            total_likes=Sum('likes')
+        ).order_by('-count')
+    }
+    
+    return render(request, 'social_stats.html', {'stats': stats})
+
+
+@csrf_exempt
+@require_POST
+@login_required
+def social_links_update(request):
+    try:
+        data = json.loads(request.body)
+        social_links, created = SocialLink.objects.get_or_create(user=request.user)
+        
+        for field in ['vk', 'telegram', 'instagram', 'youtube', 'facebook', 'twitter']:
+            setattr(social_links, field, data.get(field, '').strip())
+        
+        social_links.save()
+        return JsonResponse({'status': 'success'})
+    except:
+        return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def social_post_view(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, is_published=True)
+    
+    if is_client(request.user):
+        SocialPostView.objects.get_or_create(post=post, client=request.user)
+        post.views += 1
+        if SocialPostView.objects.filter(post=post, client=request.user).count() == 1:
+            post.unique_views += 1
+        post.save(update_fields=['views', 'unique_views'])
+    
+    context = {
+        'post': post,
+        'social_links': post.client.social_links,
+        'reviews': post.reviews.select_related('client', 'manager_reply').all()[:10]
+    }
+    
+    return render(request, 'social_post_view.html', context)
+
+@login_required
+@user_passes_test(is_manager)
+def manager_post_reviews(request, post_id):
+    post = get_object_or_404(SocialPost, id=post_id, manager=request.user)
+    reviews = post.reviews.select_related('client', 'manager_reply').order_by('-created_at')
+    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    
+    context = {
+        'post': post,
+        'reviews': reviews,
+        'avg_rating': avg_rating
+    }
+    return render(request, 'manager_post_reviews.html', context)
+
+    
+    
+
+
+
+
+
+
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()

@@ -6,6 +6,162 @@ from django.db.models.signals import post_save, post_delete, pre_delete
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from decimal import Decimal
+from django.urls import reverse
+
+class Document(models.Model):
+    DOCUMENT_TYPES = [
+        ('contract', 'Договор'),
+        ('invoice', 'Счет'),
+        ('act', 'Акт выполненных работ'),
+        ('certificate', 'Сертификат'),
+        ('estimate', 'Смета'),
+        ('receipt', 'Чек'),
+    ]
+    
+    title = models.CharField(max_length=200, verbose_name="Название документа")
+    type = models.CharField(max_length=20, choices=DOCUMENT_TYPES, verbose_name="Тип документа")
+    client_name = models.CharField(max_length=200, verbose_name="Клиент")
+    client_email = models.EmailField(verbose_name="Email клиента")
+    client_phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Сумма")
+    date = models.DateField(auto_now_add=True, verbose_name="Дата создания")
+    content = models.TextField(blank=True, verbose_name="Дополнительная информация")
+    file = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, verbose_name="Файл документа")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
+    
+    class Meta:
+        verbose_name = "Документ"
+        verbose_name_plural = "Документы"
+        ordering = ['-date']
+    
+    def __str__(self):
+        return f"{self.get_type_display()} - {self.title}"
+    
+    def get_absolute_url(self):
+        return reverse('manager_document_detail', kwargs={'pk': self.pk})
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+class SocialLink(models.Model):
+    PLATFORMS = [
+        ('vk', 'ВКонтакте'),
+        ('telegram', 'Telegram'), 
+        ('instagram', 'Instagram'),
+        ('youtube', 'YouTube'),
+        ('facebook', 'Facebook'),
+        ('twitter', 'Twitter/X'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='social_links')
+    vk = models.URLField(max_length=500, blank=True, verbose_name='ВКонтакте')
+    telegram = models.URLField(max_length=500, blank=True, verbose_name='Telegram')
+    instagram = models.URLField(max_length=500, blank=True, verbose_name='Instagram')
+    youtube = models.URLField(max_length=500, blank=True, verbose_name='YouTube')
+    facebook = models.URLField(max_length=500, blank=True, verbose_name='Facebook')
+    twitter = models.URLField(max_length=500, blank=True, verbose_name='Twitter')
+    
+    def __str__(self):
+        return f"Соцсети {self.user.username}"
+
+class SocialPost(models.Model):
+    PLATFORMS = [
+        ('vk', 'ВКонтакте'),
+        ('telegram', 'Telegram'),
+        ('instagram', 'Instagram'),
+        ('youtube', 'YouTube'),
+    ]
+    
+    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='client_social_posts', verbose_name='Клиент')
+    manager = models.ForeignKey(User, on_delete=models.CASCADE, related_name='manager_social_posts', verbose_name='Менеджер')
+    
+    title = models.CharField(max_length=200, verbose_name='Заголовок')
+    content = models.TextField(verbose_name='Текст поста')
+    platform = models.CharField(max_length=20, choices=PLATFORMS, verbose_name='Платформа')
+    image_url = models.URLField(max_length=500, blank=True, verbose_name='URL картинки')  # 🔥 НОВОЕ ПОЛЕ
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Обновлен')
+    is_published = models.BooleanField(default=False, verbose_name='Опубликован')
+    
+    views = models.IntegerField(default=0, verbose_name='Просмотры')
+    unique_views = models.IntegerField(default=0, verbose_name='Уникальные просмотры')
+    likes = models.IntegerField(default=0, verbose_name='Лайки')
+    shares = models.IntegerField(default=0, verbose_name='Репосты')
+    comments = models.IntegerField(default=0, verbose_name='Комментарии')
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} ({self.platform}) - {self.client.username}"
+    
+    @property
+    def has_image(self):
+        """Проверяет наличие картинки"""
+        return bool(self.image_url)
+    
+    def get_platform_display(self):
+        display = dict(self.PLATFORMS).get(self.platform, self.platform)
+        return display
+
+class SocialPostView(models.Model):
+    post = models.ForeignKey(SocialPost, on_delete=models.CASCADE, related_name='views_log')
+    client = models.ForeignKey(User, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['post', 'client']
+        ordering = ['-viewed_at']
+
+class Review(models.Model):
+    RATING_CHOICES = [
+        (1, '⭐☆☆☆☆ 1'),
+        (2, '⭐⭐☆☆☆ 2'),
+        (3, '⭐⭐⭐☆☆ 3'),
+        (4, '⭐⭐⭐⭐☆ 4'),
+        (5, '⭐⭐⭐⭐⭐ 5'),
+    ]
+    
+    post = models.ForeignKey(SocialPost, on_delete=models.CASCADE, related_name='reviews')
+    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='client_reviews', verbose_name='Клиент')
+    manager_reply = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='manager_replies', verbose_name='Менеджер')
+    text = models.TextField(verbose_name='Отзыв клиента')
+    reply_text = models.TextField(blank=True, null=True, verbose_name='Ответ менеджера')
+    rating = models.IntegerField(choices=RATING_CHOICES, default=3, verbose_name='Оценка')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+    replied_at = models.DateTimeField(null=True, blank=True, verbose_name='Ответил')
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Отзыв к {self.post.title} - {self.client.username} ({self.rating}/5)"
+
+@receiver(post_save, sender=User)
+def create_social_link(sender, instance, created, **kwargs):
+    if created:
+        SocialLink.objects.get_or_create(user=instance)
+    
+
+
+
+
+
+
+
+
 
 class Book(models.Model):
     title = models.CharField("Название", max_length=255)

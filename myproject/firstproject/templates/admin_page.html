@@ -18,7 +18,7 @@
     --color-text-light: #222222;
     --color-text-dark: #eaeaea;
 
-    --font-family: 'Cinzel Decorative', serif;
+    --font-family: 'Cinzel Decorative', serif; 
 
     --border-radius: 10px;
     --btn-padding: 12px 25px;
@@ -313,32 +313,37 @@ window.addEventListener('DOMContentLoaded', () => {
     <p class="welcome">Управляйте магазином, следите за заказами и добавляйте новые книги.</p>
 
     <section class="admin-panel" role="region" aria-label="Панель управления">
-        <a href="{% url 'admin_users_list' %}" class="panel-card" title="Просмотр и управление пользователями">
-            <div class="card-icon">👥</div>
-            <div class="card-title">Пользователи</div>
-            <div class="card-desc">Добавление, редактирование, удаление, изменение ролей, блокировка</div>
-        </a>
-        <a href="{% url 'book_catalog' %}" class="panel-card" title="Управление каталогом книг">
-            <div class="card-icon">📚</div>
-            <div class="card-title">Каталог книг</div>
-            <div class="card-desc">Добавление, редактирование, удаление товаров, поиск и фильтрация</div>
-        </a>
-        <a href="{% url 'promotions_list' %}" class="panel-card" title="Управление акциями и скидками">
-            <div class="card-icon">🎁</div>
-            <div class="card-title">Акции и скидки</div>
-            <div class="card-desc">Создание, редактирование, удаление промо-кампаний</div>
-        </a>
-        <a href="{% url 'admin_analytics' %}" class="panel-card" title="Аналитика и статистика">
-            <div class="card-icon">📈</div>
-            <div class="card-title">Аналитика</div>
-            <div class="card-desc">Статистика по пользователям, товарам и продажам</div>
-        </a>
-        <div class="panel-card" title="Администрирование и безопасность" onclick="window.location.href='{% url 'admin_design' %}'" style="cursor:pointer; user-select:none;">
-            <div class="card-icon">🎨</div>
-            <div class="card-title">Дизайн</div>
-            <div class="card-desc">Возможность изменения дизайна сайта</div>
-        </div>
-    </section>
+      <a href="{% url 'admin_users_list' %}" class="panel-card" title="Просмотр и управление пользователями">
+          <div class="card-icon">👥</div>
+          <div class="card-title">Пользователи</div>
+          <div class="card-desc">Добавление, редактирование, удаление, изменение ролей, блокировка</div>
+      </a>
+      <a href="{% url 'book_catalog' %}" class="panel-card" title="Управление каталогом книг">
+          <div class="card-icon">📚</div>
+          <div class="card-title">Каталог книг</div>
+          <div class="card-desc">Добавление, редактирование, удаление товаров, поиск и фильтрация</div>
+      </a>
+      <a href="{% url 'promotions_list' %}" class="panel-card" title="Управление акциями и скидками">
+          <div class="card-icon">🎁</div>
+          <div class="card-title">Акции и скидки</div>
+          <div class="card-desc">Создание, редактирование, удаление промо-кампаний</div>
+      </a>
+      <a href="{% url 'admin_analytics' %}" class="panel-card" title="Аналитика и статистика">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Аналитика</div>
+          <div class="card-desc">Статистика по пользователям, товарам и продажам</div>
+      </a>
+      <div class="panel-card" title="Администрирование и безопасность" onclick="window.location.href='{% url 'admin_design' %}'" style="cursor:pointer; user-select:none;">
+          <div class="card-icon">🎨</div>
+          <div class="card-title">Дизайн</div>
+          <div class="card-desc">Возможность изменения дизайна сайта</div>
+      </div>
+      <a href="{% url 'admin_social_page' %}" class="panel-card" title="Управление соцсетями">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">Соцсети</div>
+          <div class="card-desc">Статистика постов, аналитика активности</div>
+      </a>
+  </section>  
 
     <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
 </main>

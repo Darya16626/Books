@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{% if action == 'Создать' %}Создать{% else %}Редактировать{% endif %} пост{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card p-5">
+                <h2 class="fw-bold mb-4 text-center">
+                    {% if action == 'Создать' %}<i class="fas fa-plus text-success me-2"></i>{% else %}<i class="fas fa-edit text-primary me-2"></i>{% endif %}
+                    {{ action }} пост
+                </h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        {{ form.title }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.content }}
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            {{ form.platform }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.is_published }}
+                            <label class="form-check-label ms-2">Опубликовать</label>
+                        </div>
+                    </div>
+                    <!-- 🔥 ПОЛЕ URL КАРТИНКИ -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">🖼️ URL картинки</label>
+                        {{ form.image_url }}
+                        <div class="form-text">
+                            Вставьте прямую ссылку на изображение (jpg, png, webp):<br>
+                            <small class="text-muted">Пример: https://example.com/image.jpg</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary px-4 flex-grow-1">Сохранить</button>
+                        <a href="{% url 'manager_social_page' %}" class="btn btn-outline-secondary px-4">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

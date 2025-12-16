@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Статистика соцсетей{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-lg-3">
+        <div class="glass-card p-4 text-center h-100">
+            <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+            <h3 class="display-4 fw-bold mb-1">{{ stats.total }}</h3>
+            <p class="text-muted mb-0">Всего постов</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="glass-card p-4 text-center h-100" style="background: rgba(70, 128, 194, 0.1);">
+            <i class="fab fa-vk fa-3x text-primary mb-3"></i>
+            <h3 class="display-4 fw-bold mb-1 text-primary">{{ stats.vk }}</h3>
+            <p class="text-muted mb-0">ВКонтакте</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="glass-card p-4 text-center h-100">
+            <i class="fas fa-eye fa-3x text-info mb-3"></i>
+            <h3 class="display-4 fw-bold mb-1">{{ stats.avg_views|floatformat:0 }}</h3>
+            <p class="text-muted mb-0">Средние просмотры</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="glass-card p-4 text-center h-100">
+            <i class="fas fa-heart fa-3x text-danger mb-3"></i>
+            <h3 class="display-4 fw-bold mb-1">{{ stats.avg_likes|floatformat:0 }}</h3>
+            <p class="text-muted mb-0">Средние лайки</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-5">
+            <h4 class="fw-bold mb-4">📊 Статистика по платформам</h4>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Платформа</th>
+                            <th>Постов</th>
+                            <th>Просмотров</th>
+                            <th>Лайков</th>
+                            <th>Сред. просмотров</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for platform in stats.platform_stats %}
+                        <tr>
+                            <td>
+                                <span class="platform-badge {{ platform.platform }}-badge me-2"></span>
+                                {{ platform.platform|title }}
+                            </td>
+                            <td><strong>{{ platform.count }}</strong></td>
+                            <td>{{ platform.total_likes|default:0 }}</td>
+                            <td>{{ platform.avg_views|floatformat:0|default:0 }}</td>
+                            <td>{{ platform.avg_views|floatformat:1|default:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-4">📈 Общая статистика</h5>
+            <div class="mb-4">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Всего просмотров:</span>
+                    <strong>{{ stats.total_views }}</strong>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-primary" style="width: 75%"></div>
+                </div>
+            </div>
+            <a href="{% url 'admin_social_page' %}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-arrow-left me-2"></i>Назад к панели
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -223,13 +223,25 @@ body.dark-theme .logout-link {
                 <div class="card-icon" aria-hidden="true">📊</div>
                 <div class="card-title">Аналитика</div>
                 <div class="card-desc">Формирование отчетов по продажам</div>
-            </a>            
+            </a>         
             <a href="{% url 'manager_support_page' %}" class="panel-card" title="Поддержка клиентов" role="button">
                 <div class="card-icon" aria-hidden="true">💬</div>
                 <div class="card-title">Поддержка клиентов</div>
                 <div class="card-desc">Решение вопросов и поддержка клиентов</div>
             </a>
-        </section>
+            <a href="{% url 'manager_social_page' %}" class="panel-card" title="Управление соцсетями" role="button">
+                <div class="card-icon" aria-hidden="true">📱</div>
+                <div class="card-title">Соцсети</div>
+                <div class="card-desc">Создание постов, планировщик контента</div>
+            </a>
+            <!-- 🔥 НОВАЯ КНОПКА ДОКУМЕНТЫ 🔥 -->
+            <a href="{% url 'manager_documents' %}" class="panel-card" title="Создание документов" role="button">
+                <div class="card-icon" aria-hidden="true">📄</div>
+                <div class="card-title">Документы</div>
+                <div class="card-desc">Договоры, счета, акты, сертификаты</div>
+            </a>
+        </section>        
+        
 
         <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
     </main>

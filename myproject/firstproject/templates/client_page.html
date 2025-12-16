@@ -272,7 +272,11 @@ body.dark-theme .logout-link {
             <div class="card-icon">💬</div>
             <div class="card-title">Чат поддержки</div>
         </a>
-    </section>
+        <a href="{% url 'client_social_page' %}" class="panel-card" title="Мои соцсети" style="text-decoration:none;">
+            <div class="card-icon">🔗</div>
+            <div class="card-title">Соцсети</div>
+        </a>
+    </section>    
 
     <a href="{% url 'logout' %}" class="logout-link">Выйти</a>
   </main>

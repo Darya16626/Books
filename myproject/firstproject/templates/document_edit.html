@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать {{ doc.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="glass-card shadow-xl p-5 mb-5">
+                <div class="text-center mb-5">
+                    <h1 class="fw-bold text-primary mb-3"><i class="fas fa-edit me-3"></i>✏️ Редактировать документ</h1>
+                    <p class="lead text-muted">{{ doc.get_type_display }}: {{ doc.title }}</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Скрытое поле ID -->
+                    <input type="hidden" name="doc_id" value="{{ doc.pk }}">
+                    
+                    <!-- Тип и название -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Тип документа</label>
+                            <select name="type" class="form-select form-select-lg">
+                                <option value="contract" {% if doc.type == 'contract' %}selected{% endif %}>📋 Договор</option>
+                                <option value="invoice" {% if doc.type == 'invoice' %}selected{% endif %}>💰 Счет</option>
+                                <option value="act" {% if doc.type == 'act' %}selected{% endif %}>✍️ Акт выполненных работ</option>
+                                <option value="certificate" {% if doc.type == 'certificate' %}selected{% endif %}>🏆 Сертификат</option>
+                                <option value="estimate" {% if doc.type == 'estimate' %}selected{% endif %}>📈 Смета</option>
+                                <option value="receipt" {% if doc.type == 'receipt' %}selected{% endif %}>✅ Чек</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Название</label>
+                            <input type="text" name="title" value="{{ doc.title }}" class="form-control form-control-lg" required>
+                        </div>
+                    </div>
+
+                    <!-- Клиент -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Имя клиента</label>
+                            <input type="text" name="client_name" value="{{ doc.client_name }}" class="form-control form-control-lg" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" name="client_email" value="{{ doc.client_email }}" class="form-control form-control-lg" required>
+                        </div>
+                    </div>
+
+                    <!-- Контакты и сумма -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Телефон</label>
+                            <input type="tel" name="client_phone" value="{{ doc.client_phone }}" class="form-control form-control-lg">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Сумма (₽)</label>
+                            <input type="number" name="amount" step="0.01" value="{{ doc.amount|default:'' }}" class="form-control form-control-lg text-end">
+                        </div>
+                    </div>
+
+                    <!-- Информация и файл -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Дополнительная информация</label>
+                            <textarea name="content" rows="4" class="form-control">{{ doc.content }}</textarea>
+                        </div>
+                    </div>
+
+                    {% if doc.file %}
+                    <div class="row mb-5">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Текущий файл</label>
+                            <div class="alert alert-info">
+                                <i class="fas fa-file me-2"></i>{{ doc.get_filename }}
+                                <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary float-end" target="_blank">Скачать</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row mb-5">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Новый файл (оставить старый или заменить)</label>
+                            <input type="file" name="file" class="form-control form-control-lg" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+                            <small class="text-muted">Необязательно</small>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'manager_documents' %}" class="btn btn-outline-secondary btn-lg px-5">
+                            <i class="fas fa-arrow-left me-2"></i>Отмена
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg px-5 shadow-lg">
+                            <i class="fas fa-save me-2"></i>Сохранить изменения
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

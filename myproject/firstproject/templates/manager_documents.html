@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% block title %}Документы - Менеджер{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row">
+        <!-- Заголовок -->
+        <div class="col-12 mb-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-bold text-primary mb-2"><i class="fas fa-file-alt me-3"></i>📄 Документы</h1>
+                    <p class="lead text-muted mb-0">Договоры, счета, акты и сертификаты ({{ total_docs }})</p>
+                </div>
+                <a href="{% url 'document_create' %}" class="btn btn-success btn-lg px-5 shadow-lg">
+                    <i class="fas fa-plus me-2"></i>Новый документ
+                </a>
+            </div>
+        </div>
+
+        <!-- Список документов -->
+        <div class="col-12">
+            <div class="row g-4">
+                {% for doc in documents %}
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="document-card h-100 glass-card shadow-xl position-relative overflow-hidden">
+                        <!-- Тип документа -->
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge fs-6 px-3 py-2 fw-semibold {{ doc.type }}-badge">
+                                {{ doc.get_type_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- 🔥 БЛОК С КАРТИНКОЙ/ИКОНКОЙ + РАЗВЕРНУТЫЙ РЕЖИМ -->
+                        <div class="document-preview position-relative">
+                            <!-- Кнопка развернуть (только если есть картинка) -->
+                            {% if doc.image %}
+                            <button class="btn btn-sm btn-outline-primary position-absolute top-1 start-1 m-2 expand-btn z-3" 
+                                    onclick="toggleImage({{ doc.pk }})" 
+                                    title="Развернуть изображение">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                            </button>
+                            {% endif %}
+
+                            <!-- 🔥 КАРТИНКА ДОКУМЕНТА (вместо иконки) -->
+                            {% if doc.image %}
+                            <div class="preview-container text-center p-4" id="preview-{{ doc.pk }}">
+                                <img src="{{ doc.image.url }}" 
+                                     alt="{{ doc.title }}" 
+                                     class="document-thumb img-fluid rounded-3 shadow-sm"
+                                     style="max-height: 200px; width: 100%; object-fit: cover; cursor: pointer;"
+                                     onclick="toggleImage({{ doc.pk }})"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <!-- Заглушка на случай ошибки -->
+                                <div class="doc-icon d-none mb-4">
+                                    {% if doc.type == 'contract' %}<i class="fas fa-file-contract fa-3x text-primary"></i>{% endif %}
+                                    {% if doc.type == 'invoice' %}<i class="fas fa-file-invoice-dollar fa-3x text-success"></i>{% endif %}
+                                    {% if doc.type == 'act' %}<i class="fas fa-file-signature fa-3x text-info"></i>{% endif %}
+                                    {% if doc.type == 'certificate' %}<i class="fas fa-certificate fa-3x text-warning"></i>{% endif %}
+                                    {% if doc.type == 'estimate' %}<i class="fas fa-calculator fa-3x text-secondary"></i>{% endif %}
+                                    {% if doc.type == 'receipt' %}<i class="fas fa-receipt fa-3x text-dark"></i>{% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- Иконка по умолчанию -->
+                            <div class="p-5 text-center">
+                                <div class="doc-icon mb-4">
+                                    {% if doc.type == 'contract' %}<i class="fas fa-file-contract fa-4x text-primary"></i>{% endif %}
+                                    {% if doc.type == 'invoice' %}<i class="fas fa-file-invoice-dollar fa-4x text-success"></i>{% endif %}
+                                    {% if doc.type == 'act' %}<i class="fas fa-file-signature fa-4x text-info"></i>{% endif %}
+                                    {% if doc.type == 'certificate' %}<i class="fas fa-certificate fa-4x text-warning"></i>{% endif %}
+                                    {% if doc.type == 'estimate' %}<i class="fas fa-calculator fa-4x text-secondary"></i>{% endif %}
+                                    {% if doc.type == 'receipt' %}<i class="fas fa-receipt fa-4x text-dark"></i>{% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Название и клиент -->
+                            <div class="p-3 text-center">
+                                <h4 class="fw-bold mb-3 lh-sm">{{ doc.title|truncatechars:40 }}</h4>
+                                <p class="text-muted mb-4">{{ doc.client_name }}</p>
+                                
+                                {% if doc.amount %}
+                                <div class="bg-light rounded-pill px-4 py-2 mb-4 mx-auto" style="max-width: 200px;">
+                                    <strong class="text-success fs-5">{{ doc.amount|floatformat:0 }} ₽</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- 🔥 ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ (скрыт по умолчанию) -->
+                            {% if doc.image %}
+                            <div class="full-image-overlay d-none position-fixed" id="full-image-{{ doc.pk }}" style="top:0;left:0;width:100vw;height:100vh;z-index:9999;">
+                                <div class="image-backdrop w-100 h-100" onclick="toggleImage({{ doc.pk }})"></div>
+                                <div class="image-container position-absolute top-50 start-50 translate-middle p-4 rounded-4 shadow-xl">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 class="fw-bold text-white mb-0">{{ doc.title }}</h5>
+                                        <button class="btn-close btn-close-white" onclick="toggleImage({{ doc.pk }})" type="button"></button>
+                                    </div>
+                                    <img src="{{ doc.image.url }}" 
+                                         alt="{{ doc.title }}" 
+                                         class="full-image img-fluid rounded-3 shadow-lg w-100">
+                                    <div class="mt-4 pt-3 border-top">
+                                        <a href="{{ doc.image.url }}" class="btn btn-outline-light me-3 px-4" download>
+                                            <i class="fas fa-download me-2"></i>Скачать
+                                        </a>
+                                        <a href="{% url 'manager_document_detail' doc.pk %}" class="btn btn-primary px-4">
+                                            <i class="fas fa-eye me-2"></i>Подробнее
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Действия -->
+                        <div class="p-4 border-top">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ doc.date|date:"d.m.Y" }}
+                                </small>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'manager_document_detail' doc.pk %}" class="btn btn-outline-primary btn-sm" title="Просмотр">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'document_edit' doc.pk %}" class="btn btn-outline-success btn-sm" title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteDocument({{ doc.pk }})" title="Удалить">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-8">
+                    <i class="fas fa-file-alt fa-5x text-muted mb-4 opacity-50"></i>
+                    <h4 class="text-muted mb-3">Документов пока нет</h4>
+                    <a href="{% url 'document_create' %}" class="btn btn-success btn-lg px-5">
+                        <i class="fas fa-plus me-2"></i>Создать первый документ
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Базовые стили */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+}
+
+.document-card {
+    border-radius: 24px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+}
+.document-card:hover {
+    transform: translateY(-12px) !important;
+    box-shadow: 0 35px 70px rgba(0,0,0,0.2) !important;
+}
+
+/* Бейджи */
+.contract-badge { background: linear-gradient(135deg, #007bff, #0056b3); color: white; }
+.invoice-badge { background: linear-gradient(135deg, #28a745, #1e7e34); color: white; }
+.act-badge { background: linear-gradient(135deg, #17a2b8, #117a8b); color: white; }
+.certificate-badge { background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; }
+.estimate-badge { background: linear-gradient(135deg, #6c757d, #495057); color: white; }
+.receipt-badge { background: linear-gradient(135deg, #343a40, #212529); color: white; }
+
+/* 🔥 СТИЛИ ДЛЯ КАРТИНОК */
+.expand-btn {
+    transition: all 0.3s ease;
+    opacity: 0.8;
+}
+.expand-btn:hover {
+    transform: scale(1.1);
+    background: #007bff !important;
+    color: white !important;
+    opacity: 1;
+}
+
+.document-thumb {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid transparent;
+}
+.document-thumb:hover {
+    transform: scale(1.03);
+    border-color: #007bff !important;
+    box-shadow: 0 15px 40px rgba(0,123,255,0.3) !important;
+}
+
+.doc-icon i {
+    background: linear-gradient(135deg, rgba(0,123,255,0.1), rgba(0,86,179,0.1));
+    padding: 20px;
+    border-radius: 20px;
+    color: #007bff !important;
+}
+
+/* 🔥 ПОЛНОЭКРАННЫЙ РЕЖИМ */
+.full-image-overlay {
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(10px);
+}
+
+.image-backdrop {
+    background: rgba(0,0,0,0.8);
+}
+
+.image-container {
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(20px);
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 20px !important;
+}
+
+.full-image {
+    max-height: 60vh;
+    object-fit: contain;
+}
+
+/* Анимация появления */
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+.image-container {
+    animation: fadeInScale 0.3s ease-out;
+}
+
+/* Мобильная адаптивность */
+@media (max-width: 768px) {
+    .document-thumb { max-height: 160px !important; }
+    .image-container { 
+        max-width: 95vw !important; 
+        margin: 10px !important; 
+        padding: 20px !important;
+    }
+    .full-image { max-height: 50vh !important; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteDocument(docId) {
+    if (confirm('🗑️ Удалить этот документ? Действие нельзя отменить!')) {
+        fetch(`/manager/documents/${docId}/delete/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast('✅ Документ удален!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('❌ Ошибка удаления!', 'danger');
+            }
+        });
+    }
+}
+
+function toggleImage(docId) {
+    const overlay = document.getElementById(`full-image-${docId}`);
+    const preview = document.getElementById(`preview-${docId}`);
+    
+    if (overlay && !overlay.classList.contains('d-none')) {
+        // Закрыть
+        overlay.classList.add('d-none');
+        document.body.style.overflow = 'auto';
+    } else {
+        // Открыть
+        if (overlay) {
+            overlay.classList.remove('d-none');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+}
+
+// Закрытие по ESC и клику вне изображения
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.full-image-overlay:not(.d-none)').forEach(overlay => {
+            overlay.classList.add('d-none');
+            document.body.style.overflow = 'auto';
+        });
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 320px;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+</script>
+{% endblock %}

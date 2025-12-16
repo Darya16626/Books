@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Все посты{% endblock %}
+
+{% block content %}
+<div class="glass-card p-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h2 class="mb-0 fw-bold">
+            <i class="fas fa-list me-2 text-primary"></i>Все посты
+        </h2>
+        <a href="{% url 'social_post_create' %}" class="btn btn-success btn-lg px-4">
+            <i class="fas fa-plus me-2"></i>Новый пост
+        </a>
+    </div>
+    
+    {% if posts %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Заголовок</th>
+                    <th>Платформа</th>
+                    <th>Дата создания</th>
+                    <th>Просмотры</th>
+                    <th>Лайки</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                <tr>
+                    <td>
+                        <strong>{{ post.title|truncatechars:40 }}</strong>
+                        {% if post.image %}<i class="fas fa-image text-muted ms-1" title="Есть изображение"></i>{% endif %}
+                    </td>
+                    <td>
+                        <span class="platform-badge {{ post.platform }}-badge">
+                            <i class="fab fa-{{ post.platform }} me-1"></i>{{ post.get_platform_display }}
+                        </span>
+                    </td>
+                    <td>{{ post.created_at|date:"d.m.Y H:i" }}</td>
+                    <td><span class="badge bg-primary">{{ post.views }}</span></td>
+                    <td><span class="badge bg-success">{{ post.likes }}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="{% url 'social_post_edit' post.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn btn-outline-danger" onclick="deletePost({{ post.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-feather fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">Постов пока нет</h4>
+        <a href="{% url 'social_post_create' %}" class="btn btn-primary btn-lg mt-3">
+            Создать первый пост
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deletePost(postId) {
+    if (confirm('Удалить этот пост?')) {
+        fetch(`/social/post/${postId}/delete/`, { method: 'POST' })
+            .then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

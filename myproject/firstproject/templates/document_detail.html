@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}{{ doc.title }} - Просмотр{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-start mb-5">
+                <div>
+                    <h1 class="fw-bold text-primary mb-2">
+                        <i class="fas fa-file-alt me-3"></i>{{ doc.get_type_display }}
+                    </h1>
+                    <h3 class="fw-bold text-dark mb-1">{{ doc.title }}</h3>
+                    <p class="lead text-muted mb-0">{{ doc.client_name }}</p>
+                </div>
+                <div class="text-end">
+                    <a href="{% url 'manager_documents' %}" class="btn btn-outline-secondary btn-lg mb-2">
+                        <i class="fas fa-arrow-left me-2"></i>К списку
+                    </a>
+                    <a href="{% url 'document_edit' doc.pk %}" class="btn btn-success btn-lg mb-2">
+                        <i class="fas fa-edit me-2"></i>Редактировать
+                    </a>
+                </div>
+            </div>
+
+            <!-- Основная информация -->
+            <div class="glass-card shadow-xl p-5 mb-5">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="info-card bg-primary text-white p-4 rounded-3">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-user me-2"></i>Клиент</h6>
+                            <h5 class="mb-2">{{ doc.client_name }}</h5>
+                            <p class="mb-1"><i class="fas fa-envelope me-2"></i>{{ doc.client_email }}</p>
+                            {% if doc.client_phone %}
+                            <p><i class="fas fa-phone me-2"></i>{{ doc.client_phone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-card bg-success text-white p-4 rounded-3">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-calendar me-2"></i>Дата и сумма</h6>
+                            <p class="mb-2 fs-5"><i class="fas fa-calendar-day me-2"></i>{{ doc.date|date:"d.m.Y" }}</p>
+                            {% if doc.amount %}
+                            <h4 class="mb-0"><i class="fas fa-ruble-sign me-2"></i>{{ doc.amount|floatformat:0 }} ₽</h4>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if doc.content %}
+                <div class="mt-5 pt-4 border-top">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-align-left me-2"></i>Дополнительная информация</h5>
+                    <div class="bg-light p-4 rounded-3">{{ doc.content|linebreaks }}</div>
+                </div>
+                {% endif %}
+
+                {% if doc.file %}
+                <div class="mt-5 pt-4 border-top">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-paperclip me-2"></i>Файл документа</h5>
+                    <div class="d-flex align-items-center p-4 bg-light rounded-3">
+                        <i class="fas fa-file-pdf fa-3x text-danger me-3"></i>
+                        <div>
+                            <h6 class="mb-1">{{ doc.get_filename }}</h6>
+                            <a href="{{ doc.file.url }}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-download me-2"></i>Скачать
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.glass-card { 
+    background: rgba(255,255,255,0.95); 
+    backdrop-filter: blur(20px); 
+    border-radius: 24px; 
+}
+.info-card { 
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important; 
+}
+</style>
+{% endblock %}

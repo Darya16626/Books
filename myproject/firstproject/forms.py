@@ -17,6 +17,104 @@ from .models import Book
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import Order, OrderItem, Book
+from .models import SocialPost, SocialLink
+from .models import Review
+
+class SocialPostForm(forms.ModelForm):
+    class Meta:
+        model = SocialPost
+        fields = ['title', 'content', 'platform', 'image_url', 'client', 'is_published']  # 🔥 image_url вместо image
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Заголовок поста'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Текст поста'}),
+            'platform': forms.Select(attrs={'class': 'form-select'}),
+            'client': forms.Select(attrs={'class': 'form-select'}),
+            'image_url': forms.URLInput(attrs={  # 🔥 URL поле
+                'class': 'form-control', 
+                'placeholder': 'https://example.com/image.jpg'
+            }),
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class SocialLinkForm(forms.ModelForm):
+    class Meta:
+        model = SocialLink
+        fields = ['vk', 'telegram', 'instagram', 'youtube', 'facebook', 'twitter']
+        widgets = {
+            'vk': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://vk.com/username'}),
+            'telegram': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://t.me/username'}),
+            'instagram': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://instagram.com/username'}),
+            'youtube': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://youtube.com/@username'}),
+            'facebook': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://facebook.com/your_profile'}),
+            'twitter': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://twitter.com/username'}),
+        }
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['text', 'rating']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 3, 
+                'placeholder': 'Напишите ваш отзыв...'
+            }),
+            'rating': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+        }
+
+class ManagerReplyForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['reply_text']
+        widgets = {
+            'reply_text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Ваш ответ клиенту...'
+            }),
+        }
+
+class ManagerSocialPostForm(forms.ModelForm):
+    class Meta:
+        model = SocialPost
+        fields = ['title', 'content', 'platform', 'image_url', 'is_published']  # 🔥 image_url вместо image
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Заголовок поста'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Текст поста'}),
+            'platform': forms.Select(attrs={'class': 'form-select'}),
+            'image_url': forms.URLInput(attrs={  # 🔥 URL поле
+                'class': 'form-control', 
+                'placeholder': 'https://example.com/image.jpg'
+            }),
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class AdminSocialPostForm(forms.ModelForm):
+    class Meta:
+        model = SocialPost
+        fields = '__all__'
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'platform': forms.Select(attrs={'class': 'form-select'}),
+            'client': forms.Select(attrs={'class': 'form-select'}),
+            'manager': forms.Select(attrs={'class': 'form-select'}),
+            'image_url': forms.URLInput(attrs={'class': 'form-control'}),  # 🔥 URL поле
+            'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+
+
+
+
+
+
+
+
 
 class OrderItemForm(forms.ModelForm):
     class Meta:

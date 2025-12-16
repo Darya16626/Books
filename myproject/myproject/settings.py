@@ -8,6 +8,15 @@ SECRET_KEY = 'django-insecure-6e!w(+g6gbch5trefhni%$aa8(l-oev!)a*7#fdq)nbnth=m6y
 DEBUG = True
 ALLOWED_HOSTS = []
 
+# ✅ МЕДИА ФАЙЛЫ (ОБЯЗАТЕЛЬНО!)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ✅ СТАТИЧЕСКИЕ ФАЙЛЫ (полная настройка)
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

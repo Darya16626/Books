@@ -378,16 +378,16 @@ p[style*="color:red"], p[style*="color:orange"] {
         <h1>Баланс и карты</h1>
         <button id="theme-toggle-btn" type="button" aria-pressed="false" aria-label="Переключить светлую и тёмную тему">Тёмная / Светлая тема</button>
     </header>
-    
+ 
     <!-- Canvas для звезд и комет -->
-    <canvas id="star-canvas"></canvas>
-    
+    anvas id="star-canvas"></canvas>
+ 
     <!-- SVG для созвездий -->
     <svg id="constellation-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
-    
+ 
     <div class="balance-container" role="main" aria-label="Баланс и карты пользователя">
         <h1>Баланс: {{ balance.amount|floatformat:2 }} ₽</h1>
-    
+ 
         <!-- Карты пользователя -->
         <h2>Ваши карты</h2>
         <ul class="cards-list">
@@ -417,7 +417,7 @@ p[style*="color:red"], p[style*="color:orange"] {
             </li>
             {% endfor %}
         </ul>
-    
+ 
         <form method="post" novalidate>
             {% csrf_token %}
             {{ card_form.non_field_errors }}
@@ -434,7 +434,18 @@ p[style*="color:red"], p[style*="color:orange"] {
                 {% endfor %}
             </div>
             <div>
-                {{ card_form.expiry_date.label_tag }} {{ card_form.expiry_date }}
+                {{ card_form.expiry_date.label_tag }}
+                <input type="text" 
+                       name="{{ card_form.expiry_date.html_name }}" 
+                       id="{{ card_form.expiry_date.id_for_label }}"
+                       value="{{ card_form.expiry_date.value|default:'' }}"
+                       placeholder="ММ/ГГ (например, 12/26)"
+                       maxlength="5"
+                       pattern="\d{2}/\d{2}"
+                       inputmode="numeric"
+                       autocomplete="cc-exp"
+                       {% if card_form.expiry_date.field.required %}required{% endif %}>
+                <small>Формат: ММ/ГГ (например, 12/26)</small>
                 {% for error in card_form.expiry_date.errors %}
                     <p style="color:orange;">{{ error }}</p>
                 {% endfor %}
@@ -447,7 +458,7 @@ p[style*="color:red"], p[style*="color:orange"] {
             </div>
             <button type="submit" name="add_card_submit">Добавить карту</button>
         </form>
-    
+ 
         <h2>Пополнение баланса</h2>
         {% if not active_card %}
             <p style="color:red; text-align:center;">Сначала выберите или добавьте карту.</p>
@@ -467,7 +478,7 @@ p[style*="color:red"], p[style*="color:orange"] {
                 {% endfor %}
             {% endfor %}
         </form>
-    
+ 
         <!-- форма перевода -->
         <h2>Перевод средств</h2>
         {% if not active_card %}
@@ -512,19 +523,63 @@ p[style*="color:red"], p[style*="color:orange"] {
             
             <button type="submit" name="transfer_submit" {% if not active_card %}disabled{% endif %}>Перевести с выбранной карты</button>
         </form>
-    
+ 
         <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Обработка поля срока действия карты
+            const expiryInput = document.querySelector('input[name*="{{ card_form.expiry_date.html_name }}"]');
+            
+            if (expiryInput) {
+                // Автоматическое добавление слеша после ввода месяца
+                expiryInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                    
+                    if (value.length >= 2) {
+                        value = value.slice(0,2) + '/' + value.slice(2);
+                    }
+                    
+                    e.target.value = value;
+                });
+                
+                // Валидация в реальном времени
+                expiryInput.addEventListener('blur', function(e) {
+                    const value = e.target.value;
+                    if (value && !/^\d{2}\/\d{2}$/.test(value)) {
+                        e.target.setCustomValidity('Введите дату в формате ММ/ГГ (например, 12/26)');
+                    } else {
+                        e.target.setCustomValidity('');
+                    }
+                });
+                
+                // Проверка на будущее
+                expiryInput.addEventListener('input', function(e) {
+                    const value = e.target.value;
+                    if (value.length === 5) {
+                        const [month, year] = value.split('/');
+                        const currentYear = new Date().getFullYear() % 100;
+                        const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+                        
+                        if (parseInt(year) < currentYear || 
+                            (parseInt(year) === currentYear && parseInt(month) < parseInt(currentMonth))) {
+                            e.target.setCustomValidity('Срок действия карты истек');
+                        } else {
+                            e.target.setCustomValidity('');
+                        }
+                    }
+                });
+            }
+            
+            // Существующий код для формы перевода
             const emailInput = document.querySelector('input[name="transfer-to_user_email"]');
             const cardSelect = document.getElementById('id_transfer-to_user_card');
             const errorsDiv = document.getElementById('transfer_to_user_card_errors');
-    
+
             function clearCards() {
                 cardSelect.innerHTML = '<option value="">Сначала введите Email получателя</option>';
                 cardSelect.disabled = true;
                 errorsDiv.innerHTML = '';
             }
-    
+
             function fetchCards(email) {
                 if (!email) {
                     clearCards();
@@ -553,7 +608,7 @@ p[style*="color:red"], p[style*="color:orange"] {
                         cardSelect.disabled = true;
                     });
             }
-    
+
             if (emailInput) {
                 emailInput.addEventListener('input', function () {
                     const email = emailInput.value.trim();
@@ -562,7 +617,7 @@ p[style*="color:red"], p[style*="color:orange"] {
                 // Инициализация при загрузке
                 fetchCards(emailInput.value.trim());
             }
-    
+
             const form = document.getElementById('transferForm');
             form.addEventListener('submit', function(e) {
                 if (!cardSelect.value || cardSelect.value === '') {

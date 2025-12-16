@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% block title %}Мои соцсети{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row g-4">
+        <!-- 🎨 ГЛАВНЫЙ ФИЛЬТР -->
+        <div class="col-12">
+            <div class="glass-card shadow-lg p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-filter text-primary me-2"></i>Фильтр платформ</h5>
+                    <div class="text-muted small">{{ all_posts_with_reviews|length }} постов</div>
+                </div>
+                <div class="btn-group btn-group-lg w-100" role="group">
+                    <a href="{% url 'client_social_page' %}" class="btn {% if not platform_filter %}btn-primary fw-bold shadow-sm{% else %}btn-outline-primary{% endif %}">
+                        <i class="fas fa-globe me-1"></i>Все
+                    </a>
+                    {% for platform, name in platforms %}
+                    <a href="{% url 'client_social_platform' platform %}" class="btn {% if platform_filter == platform %}btn-primary fw-bold shadow-sm{% else %}btn-outline-primary{% endif %}">
+                        <i class="fab fa-{{ platform }} me-1"></i>{{ name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 🔗 СОЦСЕТИ -->
+        <div class="col-xl-3 col-lg-4">
+            <div class="glass-card shadow-lg p-4 h-100 sticky-top" style="top: 20px;">
+                <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-share-alt me-2"></i>🔗 Мои соцсети</h5>
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted mb-2">📘 ВКонтакте</label>
+                    <input type="url" class="form-control form-control-lg shadow-sm" id="vk" value="{{ social_links.vk }}" placeholder="https://vk.com/yourpage">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted mb-2">💬 Telegram</label>
+                    <input type="url" class="form-control form-control-lg shadow-sm" id="telegram" value="{{ social_links.telegram }}" placeholder="https://t.me/yourchannel">
+                </div>
+                <button onclick="saveSocialLinks()" class="btn btn-primary btn-lg w-100 shadow-sm">
+                    <i class="fas fa-save me-2"></i>Сохранить
+                </button>
+            </div>
+        </div>
+
+        <!-- 📱 ОСНОВНОЙ КОНТЕНТ -->
+        <div class="col-xl-9 col-lg-8">
+            <!-- Мои посты -->
+            {% if my_posts %}
+            <div class="glass-card shadow-lg p-5 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0 text-success"><i class="fas fa-user me-2"></i>📱 Мои посты</h4>
+                    <span class="badge bg-success fs-6">{{ my_posts|length }}</span>
+                </div>
+                <div class="row g-4">
+                    {% for post in my_posts %}
+                    <div class="col-xl-6 col-md-6">
+                        <div class="post-card h-100 shadow-sm border-0 position-relative overflow-hidden">
+                            <!-- 🔥 КАРТИНКА по image_url -->
+                            {% if post.image_url %}
+                            <div class="post-image-wrapper mb-3 rounded-3 overflow-hidden">
+                                <img src="{{ post.image_url }}" 
+                                     alt="{{ post.title|default:'Пост' }}" 
+                                     class="post-image w-100"
+                                     style="height: 160px; object-fit: cover;"
+                                     loading="lazy"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="image-placeholder d-none d-flex align-items-center justify-content-center bg-light text-muted h-100">
+                                    <i class="fas fa-image fa-2x opacity-50"></i>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="no-image-placeholder rounded-3 mb-3 d-flex align-items-center justify-content-center bg-light text-muted" style="height: 160px;">
+                                <i class="fas fa-image fa-2x opacity-50"></i>
+                            </div>
+                            {% endif %}
+
+                            <div class="platform-badge {{ post.platform }}-badge-lg mb-3">{{ post.get_platform_display }}</div>
+                            <h6 class="fw-bold mb-2 lh-sm">{{ post.title|truncatechars:35 }}</h6>
+                            <p class="text-muted small mb-3 lh-sm">{{ post.content|truncatewords:12 }}</p>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-primary fs-6"><i class="fas fa-eye me-1"></i>{{ post.views|default:0 }}</span>
+                                <span class="badge bg-success fs-6"><i class="fas fa-heart me-1"></i>{{ post.likes|default:0 }}</span>
+                            </div>
+                            <small class="text-muted">{{ post.created_at|date:"d.m H:i" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-feather fa-4x text-muted mb-4"></i>
+                        <h6 class="text-muted">У вас пока нет постов</h6>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🌟 РЕКОМЕНДОВАННЫЕ ПОСТЫ -->
+            <div class="glass-card shadow-lg p-5">
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <h3 class="fw-bold mb-0 text-primary"><i class="fas fa-fire me-2"></i>🌟 Рекомендуемые посты</h3>
+                    <span class="badge bg-primary fs-5 px-3 py-2">{{ all_posts_with_reviews|length }}</span>
+                </div>
+                
+                <div class="row g-4">
+                    {% for item in all_posts_with_reviews %}
+                    {% with post=item.post client_reviews=item.client_reviews has_reviews=item.has_reviews %}
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="post-card h-100 shadow-sm border-0 position-relative overflow-hidden">
+                            <!-- Платформа и автор -->
+                            <div class="d-flex justify-content-between align-items-center mb-3 pt-3 px-3">
+                                <span class="platform-badge-lg {{ post.platform }}-badge">{{ post.get_platform_display }}</span>
+                                <small class="text-muted fw-semibold">{{ post.manager.username }}</small>
+                            </div>
+                            
+                            <!-- 🔥 КАРТИНКА по image_url -->
+                            {% if post.image_url %}
+                            <div class="post-image-wrapper mb-4 px-3">
+                                <img src="{{ post.image_url }}" 
+                                     alt="{{ post.title }}" 
+                                     class="post-image img-fluid rounded-3 w-100"
+                                     style="height: 180px; object-fit: cover;"
+                                     loading="lazy"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="image-placeholder d-none d-flex align-items-center justify-content-center bg-light text-muted h-100 rounded-3">
+                                    <i class="fas fa-image fa-2x opacity-50"></i>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="no-image-placeholder px-3 mb-4 d-flex align-items-center justify-content-center bg-light text-muted rounded-3" style="height: 180px;">
+                                <i class="fas fa-image fa-2x opacity-50"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Контент -->
+                            <div class="p-3">
+                                <h6 class="fw-bold mb-3 lh-sm text-dark">{{ post.title|truncatechars:45 }}</h6>
+                                <p class="text-muted mb-4 small lh-lg">{{ post.content|truncatewords:18 }}</p>
+                                
+                                <!-- Лайк кнопка -->
+                                <div class="mb-4">
+                                    <button class="btn btn-outline-danger btn-lg w-100 shadow-sm mb-3" onclick="likePost({{ post.id }})">
+                                        <i class="fas fa-heart me-2"></i>Лайк <span class="badge bg-danger ms-1">{{ post.likes|default:0 }}</span>
+                                    </button>
+                                </div>
+                                
+                                <!-- Отзывы или форма -->
+                                {% if has_reviews %}
+                                    {% for review in client_reviews %}
+                                    <div class="review-card mb-3 p-3 bg-light rounded-3 shadow-sm">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-warning text-dark fs-6 me-2">{{ review.rating }}⭐</span>
+                                                <small class="text-muted">{{ review.created_at|date:"d.m" }}</small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger p-1" onclick="deleteReview({{ review.id }})" title="Удалить">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="small lh-sm">{{ review.text|truncatechars:80 }}</div>
+                                        {% if review.reply_text %}
+                                        <div class="mt-2 pt-2 border-top border-success border-2 rounded">
+                                            <small class="text-success fw-bold">📝 {{ review.manager_reply.username }}:</small>
+                                            <div class="mt-1 small text-success">{{ review.reply_text|truncatechars:60 }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-comments fa-2x mb-2 opacity-50"></i>
+                                        <p class="mb-0 small">Отзывов нет</p>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <!-- Форма отзыва -->
+                                    <button class="btn btn-outline-primary btn-lg w-100 mb-3 shadow-sm" onclick="toggleReview({{ post.id }})">
+                                        <i class="fas fa-comment-dots me-2"></i>Написать отзыв
+                                    </button>
+                                    <div id="review-{{ post.id }}" class="review-form" style="display: none;">
+                                        <form id="review-form-{{ post.id }}" class="p-3 bg-light rounded-3 shadow-sm">
+                                            {% csrf_token %}
+                                            <textarea name="text" class="form-control mb-3 shadow-sm" rows="3" placeholder="Поделитесь своим мнением..." required></textarea>
+                                            <select name="rating" class="form-select form-select-lg mb-3 shadow-sm" required>
+                                                <option value="">⭐ Выберите оценку</option>
+                                                {% for value, label in Review.RATING_CHOICES %}
+                                                <option value="{{ value }}">⭐ {{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="d-flex gap-2">
+                                                <button type="submit" class="btn btn-success btn-lg flex-fill shadow-sm">
+                                                    <i class="fas fa-paper-plane me-2"></i>Отправить
+                                                </button>
+                                                <button type="button" onclick="toggleReview({{ post.id }})" class="btn btn-outline-secondary btn-lg shadow-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Статистика -->
+                                <div class="stats-bar mt-auto pt-3 border-top border-light">
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span><i class="fas fa-eye text-primary me-1"></i>{{ post.views|default:0 }}</span>
+                                        <span><i class="fas fa-comment text-info me-1"></i>{{ post.comments|default:0 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-feather fa-5x text-muted mb-4 opacity-75"></i>
+                        <h4 class="text-muted mb-1">Постов пока нет</h4>
+                        <p class="text-muted lead">Следите за обновлениями!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+.glass-card:hover { transform: translateY(-5px); box-shadow: 0 25px 50px rgba(0,0,0,0.15) !important; }
+
+.post-card { 
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.post-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important; }
+
+.post-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.post-image {
+    transition: transform 0.3s ease;
+    width: 100% !important;
+}
+
+.post-card:hover .post-image {
+    transform: scale(1.05) !important;
+}
+
+.image-placeholder, .no-image-placeholder {
+    transition: all 0.3s ease;
+    min-height: 160px;
+}
+
+.platform-badge, .platform-badge-lg {
+    padding: 6px 12px;
+    border-radius: 25px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.platform-badge-lg { font-size: 0.85rem; padding: 8px 16px; }
+.vk-badge { background: linear-gradient(135deg, #4680C2, #4C75A3); color: white; }
+.telegram-badge { background: linear-gradient(135deg, #0088CC, #229ED9); color: white; }
+.instagram-badge { background: linear-gradient(135deg, #E4405F, #F77737); color: white; }
+.youtube-badge { background: linear-gradient(135deg, #FF0000, #CC0000); color: white; }
+
+.stats-bar { background: rgba(248,249,250,0.8); }
+.review-card { background: linear-gradient(135deg, #f0f8ff, #e6f3ff); border-left: 4px solid #0d6efd; }
+.review-form { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; }
+.btn:hover { transform: translateY(-1px); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function saveSocialLinks() {
+    const data = { 
+        vk: document.getElementById('vk').value, 
+        telegram: document.getElementById('telegram').value 
+    };
+    fetch("{% url 'social_links_update' %}", {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify(data)
+    }).then(res => res.json()).then(data => {
+        if (data.status === 'success') {
+            showToast('✅ Ссылки сохранены!', 'success');
+        } else {
+            showToast('❌ Ошибка сохранения', 'error');
+        }
+    });
+}
+
+function likePost(postId) {
+    fetch(`/like_post/${postId}/`, { 
+        method: 'POST', 
+        headers: {'X-CSRFToken': getCookie('csrftoken')} 
+    })
+    .then(res => res.json())
+    .then(data => { 
+        if (data.status === 'success') {
+            showToast('❤️ Лайк добавлен!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    });
+}
+
+function toggleReview(postId) {
+    const div = document.getElementById(`review-${postId}`);
+    div.style.display = div.style.display === 'none' ? 'block' : 'none';
+    div.querySelector('textarea').focus();
+}
+
+function deleteReview(reviewId) {
+    if (confirm('Удалить ваш отзыв?')) {
+        fetch(`/delete_review/${reviewId}/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                showToast('🗑️ Отзыв удален!', 'success');
+                setTimeout(() => location.reload(), 800);
+            }
+        });
+    }
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[id^="review-form-"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': getCookie('csrftoken')}
+            }).then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    showToast('⭐ Отзыв отправлен!', 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showToast(data.message || 'Ошибка отправки!', 'error');
+                }
+            });
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

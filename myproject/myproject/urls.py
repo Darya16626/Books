@@ -1,7 +1,15 @@
+from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static  # ✅ ДОБАВИТЬ
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="login/", permanent=False)),  # редирект с корня на login/
-    path("", include("firstproject.urls")),  # подключаем маршруты приложения
+    path("", RedirectView.as_view(url="login/", permanent=False)),
+    path("", include("firstproject.urls")),
 ]
+
+# ✅ КРИТИЧЕСКИ ВАЖНО! СЕРВИРОВАНИЕ MEDIA ФАЙЛОВ
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

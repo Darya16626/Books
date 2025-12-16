@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card p-5">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <span class="platform-badge {{ post.platform }}-badge fs-5 fw-bold">
+                        <i class="fab fa-{{ post.platform }} me-2"></i>{{ post.get_platform_display }}
+                    </span>
+                    <div>
+                        <span class="badge bg-primary fs-6 me-2">
+                            <i class="fas fa-eye me-1"></i>{{ post.views }}
+                        </span>
+                        <span class="badge bg-success fs-6 me-2">
+                            <i class="fas fa-heart me-1"></i>{{ post.likes }}
+                        </span>
+                    </div>
+                </div>
+                
+                {% if post.image %}
+                <img src="{{ post.image.url }}" class="img-fluid rounded mb-4" style="max-height: 400px; object-fit: cover;">
+                {% endif %}
+                
+                <h1 class="fw-bold mb-4">{{ post.title }}</h1>
+                <div class="post-content">{{ post.content|linebreaks }}</div>
+                
+                <div class="mt-5 pt-4 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ social_links.vk }}" class="btn btn-vk me-2" target="_blank">
+                            <i class="fab fa-vk me-1"></i>В профиль
+                        </a>
+                        <div>
+                            <button class="btn btn-outline-heart me-2" onclick="likePost({{ post.id }})">
+                                <i class="fas fa-heart"></i> Лайк ({{ post.likes }})
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="sharePost({{ post.id }})">
+                                <i class="fas fa-share"></i> Поделиться ({{ post.shares }})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
